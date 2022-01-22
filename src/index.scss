@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind utilities;
+@tailwind components;
+
+:root {
+  --beige-100: #eee0c7;
+  --beige-200: #fff0db;
+  --beige-300: #eed9c4;
+  --beige-400: #e4d5b7;
+  --beige-500: #d9b99b;
+  --eon-red: #8c0318;
+}
+
+html,
+body {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  background: #fafafa;
+  color: #444;
+  font-family: "Helvetica Neue", arial, sans-serif;
+  font-weight: 400;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.fg-eon-red {
+  color: var(--eon-red);
+}
+
+@for $var from 1 to 5 {
+  .bg-beige-#{$var * 100} {
+    background-color: var(--beige-#{$var * 100});
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--eon-red);
+  font-family: Cormorant, serif;
+  font-weight: 400;
+}
+
+h1 {
+  @apply text-3xl;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  @apply text-2xl;
+  margin-bottom: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+input {
+  @apply h-8;
+}
+
+input,
+textarea {
+  @apply border hover:border-gray-300 active:border-gray-300 px-2;
+}
+
+.table-condensed {
+  th,
+  td {
+    @apply p-1;
+  }
+}
+
+.dice {
+  input {
+    @apply h-8 w-8 mx-1;
+  }
+}
+
+.button-group {
+  @apply flex;
+
+  @apply fg-eon-red;
+
+  > * {
+    @apply p-1 px-2 border border-gray-200 border-r-0 hover:bg-gray-100 active:bg-gray-200;
+  }
+
+  > *:first-child {
+    @apply rounded-l-lg;
+  }
+
+  > *:last-child {
+    @apply rounded-r-lg  border-r;
+  }
+}
