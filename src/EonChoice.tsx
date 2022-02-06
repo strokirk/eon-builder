@@ -4,7 +4,6 @@ import { DropdownCombobox } from "./DropdownCombobox"
 import { EffectData, EffectList } from "./EffectList"
 import { GlobalData } from "./contexts"
 import { ARCHETYPES, ENVIRONMENT, TRIBES } from "./data"
-import { Char } from "./types"
 import { joinArray } from "./utils"
 
 type Types = "archetype" | "environment" | "tribe"
@@ -21,7 +20,12 @@ export function EonChoice({ type }: { type: Types }) {
   const [effects, setEffects] = useState(initialEffects)
 
   useUpdateEffect(() => {
-    setChar({ [type]: { effects, value } })
+    setChar({
+      [type]: {
+        effects: effects.map(({ id: _id, ...x }) => x),
+        value,
+      },
+    })
   }, [value, effects])
 
   let choices = getChoices(type)
@@ -51,7 +55,7 @@ export function EonChoice({ type }: { type: Types }) {
         <EffectList
           effects={effects}
           onChange={(e) => {
-            setEffects((effects) => effects.concat(e))
+            setEffects(e)
           }}
         />
       </div>
@@ -60,11 +64,9 @@ export function EonChoice({ type }: { type: Types }) {
 }
 
 export function getChoices(type: Types) {
-  if (type === "tribe") {
-    return TRIBES
-  } else if (type === "archetype") {
-    return ARCHETYPES
-  } else if (type === "environment") {
-    return ENVIRONMENT
-  }
+  return {
+    tribe: TRIBES,
+    archetype: ARCHETYPES,
+    environment: ENVIRONMENT,
+  }[type]
 }

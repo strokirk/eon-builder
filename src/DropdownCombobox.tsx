@@ -14,7 +14,7 @@ export function DropdownCombobox({
   items: string[]
   placeholder?: string
   value?: string
-  onChange?: (changes: string) => void
+  onChange?: (changes?: string) => void
 }) {
   const [inputItems, setInputItems] = useState(items)
   const {
@@ -26,10 +26,9 @@ export function DropdownCombobox({
     isOpen,
     openMenu,
   } = useCombobox({
-    initialInputValue: value,
+    initialInputValue: value || "",
     items: inputItems,
     onInputValueChange: ({ inputValue }) => {
-      // @ts-expect-error
       onChange?.(inputValue)
       setInputItems(
         items.filter((item) =>
@@ -44,9 +43,9 @@ export function DropdownCombobox({
     <div className="relative flex-1">
       <div {...getComboboxProps()} className="w-full h-full">
         <input
-          className={classNames(className, " w-full h-full px-2")}
-          placeholder={placeholder}
           {...getInputProps({
+            className: classNames(className, " w-full h-full px-2"),
+            placeholder,
             onFocus() {
               openMenu()
             },

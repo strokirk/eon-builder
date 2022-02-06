@@ -70,6 +70,7 @@ function EventList() {
 
   return (
     <div>
+      <div>Summary:</div>
       <ul className="my-2 space-y-2">
         {rows.map((row, i) => {
           return (

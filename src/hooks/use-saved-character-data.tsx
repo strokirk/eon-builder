@@ -1,4 +1,4 @@
-import { updatedDiff } from "deep-object-diff"
+import * as diff from "deep-object-diff"
 import { useState } from "react"
 import useDebounce from "react-use/lib/useDebounce"
 import useLocalStorage from "react-use/lib/useLocalStorage"
@@ -12,7 +12,7 @@ export function useSavedCharacterData() {
   const [storedValue, setLocalStorageValue, removeLocalStorageValue] =
     useLocalStorage(STORAGE_KEY, DefaultCharacterStore)
 
-  const [char, _setChar] = useState(storedValue)
+  const [char, _setChar] = useState(storedValue || {})
 
   function clearChar() {
     removeLocalStorageValue()
@@ -20,10 +20,7 @@ export function useSavedCharacterData() {
   }
 
   function setChar(newChar: Char) {
-    if (!Object.keys(updatedDiff(char || {}, newChar)).length) {
-      return
-    }
-    _setChar((c) => Object.assign(c, newChar))
+    _setChar((c) => ({ ...c, ...newChar }))
   }
 
   useDebounce(

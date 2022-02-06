@@ -6,7 +6,7 @@ export type Char = {
     Övernaturligt: number
   }
   Bakgrund?: {
-    effects?: Effects
+    effects: Effect[]
     name?: string
     number?: string
   }
@@ -21,6 +21,8 @@ export type Char = {
 
 export type Effect = {
   type: string
+  bonus?: string
+  name?: string
 }
 
 export type Effects = {

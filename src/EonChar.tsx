@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react"
 import { AttributeGroup } from "./AttributeAdderRow"
-import { EffectList } from "./EffectList"
+import { EffectData, EffectList } from "./EffectList"
 import { EonChoice } from "./EonChoice"
 import { EonContacts } from "./EonContacts"
 import { EonEvents } from "./EonEvents"
@@ -11,6 +11,7 @@ import { GlobalData } from "./contexts"
 import { ATTRIBUTES, ATTRIBUTES_SECONDARY } from "./data"
 import { useSavedCharacterData } from "./hooks/use-saved-character-data"
 import type { Char } from "./types"
+import { TogglableSection } from "./TogglableSection"
 
 export const DefaultCharacterStore: Char = {
   Avtrubbning: {
@@ -25,6 +26,7 @@ export const DefaultCharacterStore: Char = {
 }
 
 export default function EonChar() {
+  const [exportData, setExportData] = useState("")
   const { char, clearChar, setChar } = useSavedCharacterData()
 
   // const events: any[] = char["händelser"]
@@ -32,15 +34,24 @@ export default function EonChar() {
   // New character button
   // Load character button
   // Add image button
-  // Export data / publish character button
-  if (!char) {
-    return null
+  function exportChar() {
+    setExportData(formatExport(char))
   }
+
   return (
     <GlobalData.Provider value={[char, setChar]}>
       <div className="p-8 space-y-6">
         <h1>Eon karaktärsskapare</h1>
-        <div>
+        <div className="space-x-4">
+          <button
+            className="hover:bg-gray-300 py-2 px-4 rounded bg-gray-100 border shadow-sm"
+            onClick={() => {
+              exportChar()
+            }}
+            type="button"
+          >
+            Exportera
+          </button>
           <button
             className="hover:bg-gray-300 py-2 px-4 rounded bg-gray-100 border shadow-sm"
             onClick={() => {
@@ -52,44 +63,45 @@ export default function EonChar() {
             Rensa sparad data
           </button>
         </div>
-        <EonCreationStep name="Bakgrund">
+        {exportData.length !== 0 && <pre className="">{exportData}</pre>}
+        <TogglableSection name="Bakgrund">
           <EonBackground />
-        </EonCreationStep>
-        <EonCreationStep name="Arketyp">
-          <EonChoice type="archetype" />
-        </EonCreationStep>
-        <EonCreationStep name="Folkslag">
-          <EonChoice type="tribe" />
-        </EonCreationStep>
-        <EonCreationStep name="Miljö">
+        </TogglableSection>
+        <TogglableSection name="Miljö">
           <EonChoice type="environment" />
-        </EonCreationStep>
-        <EonCreationStep name="Händelser">
+        </TogglableSection>
+        <TogglableSection name="Arketyp">
+          <EonChoice type="archetype" />
+        </TogglableSection>
+        <TogglableSection name="Folkslag">
+          <EonChoice type="tribe" />
+        </TogglableSection>
+        <TogglableSection name="Händelser">
           <EonEvents />
-        </EonCreationStep>
-        <EonCreationStep name="Grundattribut">
+        </TogglableSection>
+        <TogglableSection name="Grundattribut">
           <AttributeGroup attributes={ATTRIBUTES.map((name) => ({ name }))} />
-        </EonCreationStep>
-        <EonCreationStep name="Härledda attribut">
+        </TogglableSection>
+        <TogglableSection name="Härledda attribut">
           <AttributeGroup
             attributes={ATTRIBUTES_SECONDARY.map((name) => ({ name }))}
           />
-        </EonCreationStep>
-        <EonCreationStep name="Avtrubbning">
+        </TogglableSection>
+        <TogglableSection name="Avtrubbning">
           <EonMentalTrauma />
-        </EonCreationStep>
-        <EonCreationStep name="Färdigheter">
+        </TogglableSection>
+        <TogglableSection name="Färdigheter">
           <EonSkillList />
-        </EonCreationStep>
-        <EonCreationStep name="Ägodelar">
+        </TogglableSection>
+        <TogglableSection name="Ägodelar">
           <EonPossessions />
-        </EonCreationStep>
-        <EonCreationStep name="Kontakter">
+        </TogglableSection>
+        <TogglableSection name="Kontakter">
           <EonContacts />
-        </EonCreationStep>
-        <EonCreationStep name="Övriga anteckningar">
+        </TogglableSection>
+        <TogglableSection name="Övriga anteckningar">
           <EonNotes />
-        </EonCreationStep>
+        </TogglableSection>
       </div>
     </GlobalData.Provider>
   )
@@ -98,7 +110,9 @@ function EonBackground() {
   const [char, setChar] = useContext(GlobalData)
   const [number, setNumber] = useState(char?.Bakgrund?.number)
   const [name, setName] = useState(char?.Bakgrund?.name)
-  const [effects, setEffects] = useState(char?.Bakgrund?.effects)
+  const [effects, setEffects] = useState(
+    (char?.Bakgrund?.effects || []) as EffectData[],
+  )
   useEffect(() => {
     setChar({ Bakgrund: { effects, name, number } })
   }, [number, name, effects])
@@ -119,34 +133,11 @@ function EonBackground() {
         ></input>
       </div>
       <EffectList
-        // effects={effects}
+        effects={effects}
         onChange={(e) => {
-          // setEffects((effects) => ({ ...effects, ...e }))
+          setEffects(e)
         }}
       />
-    </div>
-  )
-}
-
-function EonCreationStep(props: {
-  children?: JSX.Element | JSX.Element[]
-  isCollapsed?: boolean
-  name: string
-}) {
-  const [isCollapsed, setCollapsed] = useState(
-    props.isCollapsed === undefined ? false : props.isCollapsed,
-  )
-  let hidden = isCollapsed ? { style: { display: "none" } } : {}
-  let collapsedStatus = isCollapsed ? " ▸" : " ▾"
-  return (
-    <div>
-      <h2>
-        <button onClick={() => setCollapsed(!isCollapsed)} type="button">
-          {props.name}
-          {collapsedStatus}
-        </button>
-      </h2>
-      <div {...hidden}>{props.children}</div>
     </div>
   )
 }
@@ -160,4 +151,15 @@ function EonMentalTrauma() {
     </span>
   ))
   return <div>{rows}</div>
+}
+
+function formatExport(char: Char): string {
+  return `
+Bakgrund: ${char.Bakgrund?.name}
+Miljö: ${char.environment?.value}
+Arketyp: ${char.archetype?.value}
+Folkslag: ${char.tribe?.value}
+Händelser:
+${char.events?.map((e) => `${e.table} - ${e.number} - ${e.title}`).join("\n")}
+`.trim()
 }
