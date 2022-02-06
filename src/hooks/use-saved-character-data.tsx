@@ -1,8 +1,7 @@
-import * as diff from "deep-object-diff"
 import { useState } from "react"
 import useDebounce from "react-use/lib/useDebounce"
 import useLocalStorage from "react-use/lib/useLocalStorage"
-import { DefaultCharacterStore } from "../EonChar"
+
 import { Char } from "../types"
 
 const STORAGE_KEY = "eonChar"
@@ -33,4 +32,16 @@ export function useSavedCharacterData() {
   )
 
   return { char, clearChar, setChar }
+}
+
+export const DefaultCharacterStore: Char = {
+  Avtrubbning: {
+    Utsatthet: 0,
+    Våld: 0,
+    Övernaturligt: 0,
+  },
+  Färdigheter: [
+    { name: "Slagsmål", value: 0 },
+    { name: "Undvika", value: 0 },
+  ],
 }

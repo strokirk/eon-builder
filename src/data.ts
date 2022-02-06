@@ -50,6 +50,7 @@ export const ATTRIBUTES_SECONDARY = [
   "Reaktion",
   "Självkontroll",
   "Vaksamhet",
+  "Grundskada",
 ]
 
 export const TABLE_GROUPS = [

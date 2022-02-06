@@ -1,5 +1,6 @@
 import { useContext, useState } from "react"
 import useUpdateEffect from "react-use/lib/useUpdateEffect"
+
 import { DropdownCombobox } from "./DropdownCombobox"
 import { EffectData, EffectList } from "./EffectList"
 import { GlobalData } from "./contexts"
@@ -65,8 +66,8 @@ export function EonChoice({ type }: { type: Types }) {
 
 export function getChoices(type: Types) {
   return {
-    tribe: TRIBES,
     archetype: ARCHETYPES,
     environment: ENVIRONMENT,
+    tribe: TRIBES,
   }[type]
 }

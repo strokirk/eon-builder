@@ -1,5 +1,6 @@
 import { useState } from "react"
 import useUpdateEffect from "react-use/lib/useUpdateEffect"
+
 import { DropdownCombobox } from "./DropdownCombobox"
 import { MinusButton } from "./buttons"
 import {
@@ -8,13 +9,14 @@ import {
   SKILL_GROUPS,
   TABLE_GROUPS,
 } from "./data"
+import { ATTRIBUTE, SKILLPOINTS, TABELLSLAG } from "./types"
 import { getID } from "./utils"
 
 const types = [
   //
-  "Färdighetsenheter",
-  "Tabellslag",
-  "Attribut",
+  SKILLPOINTS,
+  TABELLSLAG,
+  ATTRIBUTE,
   "Annat",
 ]
 
@@ -100,7 +102,7 @@ function EffectListItem({
   if (row.type == "Färdighetsenheter") {
     choices = SKILL_GROUPS.map((x) => x.name)
   }
-  if (row.type == "Tabellslag") {
+  if (row.type == TABELLSLAG) {
     choices = TABLE_GROUPS.map((x) => x.name)
   }
   if (row.type == "Attribut") {
@@ -130,7 +132,7 @@ function EffectListItem({
           className="w-16 mr-4 border"
           onChange={(e) => setRowData(row.id, { bonus: e.currentTarget.value })}
           type="text"
-          value={row.bonus}
+          value={row.bonus || ""}
         />
         {choices && (
           <DropdownCombobox

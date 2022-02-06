@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from "react"
+
 import { AttributeGroup } from "./AttributeAdderRow"
 import { EffectData, EffectList } from "./EffectList"
 import { EonChoice } from "./EonChoice"
@@ -7,29 +8,15 @@ import { EonEvents } from "./EonEvents"
 import { EonNotes } from "./EonNotes"
 import { EonPossessions } from "./EonPossessions"
 import { EonSkillList } from "./EonSkillList"
+import { TogglableSection } from "./TogglableSection"
 import { GlobalData } from "./contexts"
 import { ATTRIBUTES, ATTRIBUTES_SECONDARY } from "./data"
 import { useSavedCharacterData } from "./hooks/use-saved-character-data"
 import type { Char } from "./types"
-import { TogglableSection } from "./TogglableSection"
-
-export const DefaultCharacterStore: Char = {
-  Avtrubbning: {
-    Utsatthet: 0,
-    Våld: 0,
-    Övernaturligt: 0,
-  },
-  Färdigheter: [
-    { name: "Slagsmål", value: 0 },
-    { name: "Undvika", value: 0 },
-  ],
-}
 
 export default function EonChar() {
   const [exportData, setExportData] = useState("")
   const { char, clearChar, setChar } = useSavedCharacterData()
-
-  // const events: any[] = char["händelser"]
 
   // New character button
   // Load character button

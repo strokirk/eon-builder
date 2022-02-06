@@ -16,14 +16,20 @@ export type Char = {
   environment?: { effects: Effect[]; value: string }
   events?: any[]
   notes?: { title: string; contents: string }[]
-  tribe?: { effects: Effects; value: string }
+  tribe?: { effects: Effect[]; value: string }
 }
 
 export type Effect = {
-  type: string
   bonus?: string
   name?: string
+  type: string
 }
+
+export const ATTRIBUTE = "Attribut"
+
+export const SKILLPOINTS = "Färdighetsenheter"
+
+export const TABELLSLAG = "Tabellslag"
 
 export type Effects = {
   Tabellslag: { bonus: string; name: string }[]
