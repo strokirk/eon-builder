@@ -1,11 +1,11 @@
 import { useContext, useState } from "react"
 import useUpdateEffect from "react-use/lib/useUpdateEffect"
 
+import { GlobalData } from "../contexts"
+import { ARCHETYPES, ENVIRONMENT, TRIBES } from "../data"
+import { joinArray } from "../utils"
 import { DropdownCombobox } from "./DropdownCombobox"
 import { EffectData, EffectList } from "./EffectList"
-import { GlobalData } from "./contexts"
-import { ARCHETYPES, ENVIRONMENT, TRIBES } from "./data"
-import { joinArray } from "./utils"
 
 type Types = "archetype" | "environment" | "tribe"
 

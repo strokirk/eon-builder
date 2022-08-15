@@ -1,16 +1,16 @@
 import { useContext, useEffect } from "react"
 
-import { MinusButton, PlusButton } from "./buttons"
-import { GlobalData } from "./contexts"
-import { useRows } from "./hooks/use-rows"
+import { MinusButton, PlusButton } from "../buttons"
+import { GlobalData } from "../contexts"
+import { useRows } from "../hooks/use-rows"
 
-export function EonContacts() {
+export function EonNotes() {
   const [char, setChar] = useContext(GlobalData)
 
   let { addRow, removeRow, rows, updateRow } = useRows(char.possessions)
 
   useEffect(() => {
-    setChar({ contacts: rows.map(({ id: _id, ...r }) => r) })
+    setChar({ notes: rows.map(({ id: _id, ...r }) => r) })
   }, [rows])
 
   return (
@@ -36,7 +36,7 @@ export function EonContacts() {
                   updateRow(row.id, { contents: e.currentTarget.value })
                 }}
                 value={row.contents}
-              ></textarea>
+              />
             </li>
           )
         })}

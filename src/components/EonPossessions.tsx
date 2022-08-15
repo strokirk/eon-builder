@@ -1,8 +1,8 @@
 import { useContext, useEffect } from "react"
 
-import { MinusButton, PlusButton } from "./buttons"
-import { GlobalData } from "./contexts"
-import { useRows } from "./hooks/use-rows"
+import { MinusButton, PlusButton } from "../buttons"
+import { GlobalData } from "../contexts"
+import { useRows } from "../hooks/use-rows"
 
 export function EonPossessions() {
   const [char, setChar] = useContext(GlobalData)

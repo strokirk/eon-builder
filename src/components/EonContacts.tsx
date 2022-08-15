@@ -1,50 +1,16 @@
-import { useContext, useEffect, useState } from "react"
+import { useContext, useEffect } from "react"
 
-import { MinusButton, PlusButton } from "./buttons"
-import { GlobalData } from "./contexts"
-import { getID } from "./utils"
+import { MinusButton, PlusButton } from "../buttons"
+import { GlobalData } from "../contexts"
+import { useRows } from "../hooks/use-rows"
 
-type RowData = {
-  contents: string
-  id: string
-  title: string
-}
-function useRows(initial?: RowData[]) {
-  const [rows, setRows] = useState<RowData[]>(
-    initial?.map((r) => ({ ...r, id: getID() })) || [newRow()],
-  )
-
-  function updateRow(key: string, data: Partial<RowData>) {
-    setRows((r) => r.map((x) => (x.id === key ? { ...x, ...data } : x)))
-  }
-
-  function removeRow(key: string) {
-    setRows((rows) => rows.filter((x) => x.id !== key))
-  }
-
-  function addRow() {
-    setRows((r) => r.concat(newRow()))
-  }
-
-  return {
-    addRow,
-    removeRow,
-    rows,
-    updateRow,
-  }
-}
-
-function newRow(): any {
-  return { contents: "", id: getID(), title: "" }
-}
-
-export function EonNotes() {
+export function EonContacts() {
   const [char, setChar] = useContext(GlobalData)
 
   let { addRow, removeRow, rows, updateRow } = useRows(char.possessions)
 
   useEffect(() => {
-    setChar({ notes: rows.map(({ id: _id, ...r }) => r) })
+    setChar({ contacts: rows.map(({ id: _id, ...r }) => r) })
   }, [rows])
 
   return (

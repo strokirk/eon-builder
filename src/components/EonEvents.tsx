@@ -1,11 +1,11 @@
 import { useContext, useEffect, useState } from "react"
 
+import { MinusButton, PlusButton } from "../buttons"
+import { GlobalData } from "../contexts"
+import { TABLE_GROUPS } from "../data"
+import { Char, TABELLSLAG } from "../types"
+import { getID } from "../utils"
 import { DropdownCombobox } from "./DropdownCombobox"
-import { MinusButton, PlusButton } from "./buttons"
-import { GlobalData } from "./contexts"
-import { TABLE_GROUPS } from "./data"
-import { Char, TABELLSLAG } from "./types"
-import { getID } from "./utils"
 
 export function EonEvents() {
   const [char] = useContext(GlobalData)

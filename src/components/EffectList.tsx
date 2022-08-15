@@ -1,16 +1,16 @@
 import { useState } from "react"
 import useUpdateEffect from "react-use/lib/useUpdateEffect"
 
-import { DropdownCombobox } from "./DropdownCombobox"
-import { MinusButton } from "./buttons"
+import { MinusButton } from "../buttons"
 import {
   ATTRIBUTES,
   ATTRIBUTES_SECONDARY,
   SKILL_GROUPS,
   TABLE_GROUPS,
-} from "./data"
-import { ATTRIBUTE, SKILLPOINTS, TABELLSLAG } from "./types"
-import { getID } from "./utils"
+} from "../data"
+import { ATTRIBUTE, SKILLPOINTS, TABELLSLAG } from "../types"
+import { getID } from "../utils"
+import { DropdownCombobox } from "./DropdownCombobox"
 
 const types = [
   //

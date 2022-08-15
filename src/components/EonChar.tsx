@@ -1,5 +1,9 @@
 import { useContext, useEffect, useState } from "react"
 
+import { GlobalData } from "../contexts"
+import { ATTRIBUTES, ATTRIBUTES_SECONDARY } from "../data"
+import { useSavedCharacterData } from "../hooks/use-saved-character-data"
+import type { Char } from "../types"
 import { AttributeGroup } from "./AttributeAdderRow"
 import { EffectData, EffectList } from "./EffectList"
 import { EonChoice } from "./EonChoice"
@@ -9,10 +13,6 @@ import { EonNotes } from "./EonNotes"
 import { EonPossessions } from "./EonPossessions"
 import { EonSkillList } from "./EonSkillList"
 import { TogglableSection } from "./TogglableSection"
-import { GlobalData } from "./contexts"
-import { ATTRIBUTES, ATTRIBUTES_SECONDARY } from "./data"
-import { useSavedCharacterData } from "./hooks/use-saved-character-data"
-import type { Char } from "./types"
 
 export default function EonChar() {
   const [exportData, setExportData] = useState("")
@@ -132,12 +132,14 @@ function EonBackground() {
 function EonMentalTrauma() {
   const names = ["Utsatthet", "Våld", "Övernaturligt"]
   const rows = names.map((name, key) => (
-    <span key={key}>
-      <strong>{name}</strong>
-      <input className="ml-2 mr-4 w-8" type="number" />
-    </span>
+    <div key={key}>
+      <label className="space-x-2">
+        <input className="w-8" type="number" />
+        <strong>{name}</strong>
+      </label>
+    </div>
   ))
-  return <div>{rows}</div>
+  return <div className="space-y-2">{rows}</div>
 }
 
 function formatExport(char: Char): string {

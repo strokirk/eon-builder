@@ -1,7 +1,7 @@
 import { useState } from "react"
 
+import { Die, addDice, dieFormat } from "../utils"
 import { DiceInput } from "./DiceInput"
-import { Die, addDice, dieFormat } from "./utils"
 
 type Attribute = {
   mods?: Mod[]
