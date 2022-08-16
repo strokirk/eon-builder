@@ -1,12 +1,16 @@
 import React from "react"
-import ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 
 import EonChar from "./components/EonChar"
 import "./index.scss"
 
-ReactDOM.render(
+const rootElm = document.createElement("div")
+rootElm.id = "rootElm"
+document.body.appendChild(rootElm)
+
+const root = createRoot(rootElm)
+root.render(
   <React.StrictMode>
     <EonChar />
   </React.StrictMode>,
-  document.getElementById("root"),
 )
