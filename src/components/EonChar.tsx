@@ -1,16 +1,14 @@
 import { useContext, useEffect, useState } from "react"
 
 import { GlobalData } from "../contexts"
-import { ATTRIBUTES, ATTRIBUTES_SECONDARY } from "../data"
+import { ATTRIBUTES } from "../data"
+import { formatExport } from "../export"
 import { useSavedCharacterData } from "../hooks/use-saved-character-data"
-import type { Char } from "../types"
-import { AttributeGroup } from "./AttributeAdderRow"
 import { EffectData, EffectList } from "./EffectList"
+import { AttributeGroup, SecondaryAttributeGroup } from "./EonAttributes"
 import { EonChoice } from "./EonChoice"
-import { EonContacts } from "./EonContacts"
+import { EonEntityGroup } from "./EonEntityGroup"
 import { EonEvents } from "./EonEvents"
-import { EonNotes } from "./EonNotes"
-import { EonPossessions } from "./EonPossessions"
 import { EonSkillList } from "./EonSkillList"
 import { TogglableSection } from "./TogglableSection"
 
@@ -66,28 +64,30 @@ export default function EonChar() {
         <TogglableSection name="Händelser">
           <EonEvents />
         </TogglableSection>
+        {false && (
+          // TODO:
+          <TogglableSection name="Expertiser &amp; Kännetecken"></TogglableSection>
+        )}
+        <TogglableSection name="Färdigheter">
+          <EonSkillList />
+        </TogglableSection>
         <TogglableSection name="Grundattribut">
-          <AttributeGroup attributes={ATTRIBUTES.map((name) => ({ name }))} />
+          <AttributeGroup attributes={ATTRIBUTES} />
         </TogglableSection>
         <TogglableSection name="Härledda attribut">
-          <AttributeGroup
-            attributes={ATTRIBUTES_SECONDARY.map((name) => ({ name }))}
-          />
+          <SecondaryAttributeGroup />
         </TogglableSection>
         <TogglableSection name="Avtrubbning">
           <EonMentalTrauma />
         </TogglableSection>
-        <TogglableSection name="Färdigheter">
-          <EonSkillList />
-        </TogglableSection>
         <TogglableSection name="Ägodelar">
-          <EonPossessions />
+          <EonEntityGroup type="possessions" />
         </TogglableSection>
         <TogglableSection name="Kontakter">
-          <EonContacts />
+          <EonEntityGroup type="contacts" />
         </TogglableSection>
         <TogglableSection name="Övriga anteckningar">
-          <EonNotes />
+          <EonEntityGroup type="notes" />
         </TogglableSection>
       </div>
     </GlobalData.Provider>
@@ -139,16 +139,10 @@ function EonMentalTrauma() {
       </label>
     </div>
   ))
-  return <div className="space-y-2">{rows}</div>
-}
-
-function formatExport(char: Char): string {
-  return `
-Bakgrund: ${char.Bakgrund?.name}
-Miljö: ${char.environment?.value}
-Arketyp: ${char.archetype?.value}
-Folkslag: ${char.tribe?.value}
-Händelser:
-${char.events?.map((e) => `${e.table} - ${e.number} - ${e.title}`).join("\n")}
-`.trim()
+  return (
+    <div className="space-y-2">
+      {rows}
+      <div>Välmående</div>
+    </div>
+  )
 }

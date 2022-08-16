@@ -2,7 +2,9 @@ import { useContext, useEffect, useState } from "react"
 
 import { MinusButton, PlusButton } from "../buttons"
 import { GlobalData } from "../contexts"
+import { useCharEffectsSelector } from "../hooks/use-char-effects-selector"
 import { useRows } from "../hooks/use-rows"
+import { Effect, EffectType } from "../types"
 
 export function dropKey(obj: any, key: string) {
   let { [key]: _, ...rest } = obj
@@ -10,15 +12,29 @@ export function dropKey(obj: any, key: string) {
 }
 
 export function EonSkillList() {
-  const [char, setChar] = useContext(GlobalData)
-  let { addRow, removeRow, rows, updateRow } = useRows(char.skills)
+  const effects = useCharEffectsSelector().filter(
+    (x) => x.type === EffectType.SKILLPOINTS,
+  )
+  const sums = getEffectSums(effects)
 
-  useEffect(() => {
-    setChar({ skills: rows.map((r) => dropKey(r, "id")) })
-  }, [rows])
+  const [char, setChar] = useContext(GlobalData)
+
+  let { addRow, removeRow, rows, updateRow, getValues } = useRows<{
+    title: string
+    contents: string
+  }>(char.skills || [{}])
+
+  useEffect(() => setChar({ skills: getValues() }), [rows])
 
   return (
-    <>
+    <div className="space-y-2">
+      <ul>
+        {sums.map(({ bonus, name }) => (
+          <li key={name}>
+            {bonus} - {name}
+          </li>
+        ))}
+      </ul>
       <ul className="space-y-2 mb-2">
         {rows.map((row) => (
           <li className="flex items-center" key={row.id}>
@@ -29,7 +45,7 @@ export function EonSkillList() {
                 updateRow(row.id, { contents: e.currentTarget.value })
               }
               type="text"
-              value={row.contents}
+              value={row.value.contents || ""}
             />
             <input
               className=""
@@ -38,7 +54,7 @@ export function EonSkillList() {
                 updateRow(row.id, { title: e.currentTarget.value })
               }
               type="text"
-              value={row.title}
+              value={row.value.title || ""}
             />
             <MinusButton onClick={() => removeRow(row.id)} />
           </li>
@@ -46,6 +62,20 @@ export function EonSkillList() {
       </ul>
 
       <PlusButton onClick={addRow} />
-    </>
+    </div>
   )
+}
+
+function getEffectSums(effects: Effect[]): { name: string; bonus: number }[] {
+  const sums: Record<string, number> = {}
+  for (const effect of effects) {
+    const bonus = +(effect.bonus || 0)
+    let name = effect.name || ""
+    if (effect.name && Number.isInteger(bonus)) {
+      sums[name] = (sums[name] || 0) + bonus
+    }
+  }
+  return Object.entries(sums)
+    .map(([name, bonus]) => ({ bonus, name }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }

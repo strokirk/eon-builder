@@ -1,20 +1,25 @@
 import { useState } from "react"
+import { hashValue } from "solid-js/types/reactive/signal"
 
 import { getID } from "../utils"
 
-type RowData = {
-  contents: string
+type RowData<C> = {
+  value: C
   id: string
-  title: string
+  order: number
 }
 
-export function useRows(initial?: RowData[]) {
-  const [rows, setRows] = useState<RowData[]>(
-    initial?.map((r) => ({ ...r, id: getID() })) || [newRow()],
+export function useRows<C>(initial?: C[]) {
+  const [rows, setRows] = useState<RowData<C>[]>(
+    initial?.map((r) => ({ value: r, id: getID() })) || [newRow()],
   )
 
-  function updateRow(key: string, data: Partial<RowData>) {
-    setRows((r) => r.map((x) => (x.id === key ? { ...x, ...data } : x)))
+  function updateRow(key: string, data: Partial<C>) {
+    setRows((r) =>
+      r.map((x) =>
+        x.id === key ? { ...x, value: { ...x.value, ...data } } : x,
+      ),
+    )
   }
 
   function removeRow(key: string) {
@@ -30,9 +35,10 @@ export function useRows(initial?: RowData[]) {
     removeRow,
     rows,
     updateRow,
+    getValues: () => rows.map((r) => r.value),
   }
 }
 
 function newRow(): any {
-  return { contents: "", id: getID(), title: "" }
+  return { id: getID(), value: {} }
 }

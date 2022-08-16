@@ -1,5 +1,9 @@
 export type Die = { dice: number; mod: number }
 
+export function sumDice(dice: Die[]): Die {
+  return dice.reduce(addDice, { dice: 0, mod: 0 })
+}
+
 export function addDice(d1: Die, d2: Die) {
   let d = d1.dice + d2.dice
   let m = d1.mod + d2.mod
@@ -17,11 +21,17 @@ export function addDice(d1: Die, d2: Die) {
   }
 }
 
-export function dieFormat(dice?: Die) {
-  if (!dice) return undefined
-  return (
-    dice.dice + "T6" + (dice.mod ? (dice.mod >= 0 ? "+" : "") + dice.mod : "")
-  )
+export function dieFormat(die: Die): string | undefined {
+  return die.dice + "T6" + (die.mod ? (die.mod >= 0 ? "+" : "") + die.mod : "")
+}
+
+export function parseDie(text: string): Die {
+  const dice = parseInt(text.split("T")[0]) || 0
+  const mod = parseInt(text.split("+")[1]) || 0
+  return {
+    dice,
+    mod,
+  }
 }
 
 export function joinArray(

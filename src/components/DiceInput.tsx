@@ -1,19 +1,18 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+type Die = { dice: number; mod: number }
 
 export function DiceInput(props: {
   value: { dice: number; mod: number }
-  onChange: (e: any) => void
+  onChange?: (e: Die) => void
 }) {
-  const [state, setState] = useState<{ d: null | number; m: null | number }>({
-    d: props.value?.dice || null,
-    m: null,
-  })
+  const [dice, setDice] = useState(props.value.dice)
+  const [mod, setMod] = useState(props.value.mod)
 
   function onChange() {
     if (props.onChange) {
-      let rd, d, m, rm
-      rd = d = Math.floor(state.d || 0)
-      rm = m = Math.floor(state.m || 0)
+      let d = Math.floor(dice || 0)
+      let m = Math.floor(mod || 0)
       while (m >= 4) {
         d += 1
         m -= 4
@@ -25,33 +24,30 @@ export function DiceInput(props: {
       props.onChange({
         dice: d,
         mod: m,
-        raw: {
-          dice: rd,
-          mod: rm,
-        },
       })
     }
   }
+
+  useEffect(onChange, [dice, mod])
+
   return (
     <div className="dice">
       <input
         onChange={(evt) => {
-          setState((s) => ({ ...s, d: parseInt(evt.currentTarget?.value) }))
-          onChange()
+          setDice(parseInt(evt.target.value, 10))
         }}
         title="Tärningar"
         type="number"
-        value={state.d || ""}
+        value={dice}
       />
       T6+
       <input
         onChange={(evt) => {
-          setState((s) => ({ ...s, m: parseInt(evt.currentTarget?.value) }))
-          onChange()
+          setMod(parseInt(evt.target.value, 10))
         }}
         title="Bonus"
         type="number"
-        value={state.m || ""}
+        value={mod}
       />
     </div>
   )

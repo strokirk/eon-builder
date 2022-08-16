@@ -8,23 +8,22 @@ import {
   SKILL_GROUPS,
   TABLE_GROUPS,
 } from "../data"
-import { ATTRIBUTE, SKILLPOINTS, TABELLSLAG } from "../types"
-import { getID } from "../utils"
+import { EffectType } from "../types"
+import { addDice, dieFormat, getID, parseDie } from "../utils"
 import { DropdownCombobox } from "./DropdownCombobox"
 
 const types = [
-  //
-  SKILLPOINTS,
-  TABELLSLAG,
-  ATTRIBUTE,
-  "Annat",
+  EffectType.SKILLPOINTS,
+  EffectType.TABELLSLAG,
+  EffectType.ATTRIBUTE,
+  EffectType.ANNAT,
 ]
 
 export type EffectData = {
   bonus?: string
   id: string
   name?: string
-  type: string
+  type: EffectType
 }
 
 export function EffectList({
@@ -41,7 +40,7 @@ export function EffectList({
     onChange?.(rows)
   }, [rows])
 
-  function addNewEffect(type: string): void {
+  function addNewEffect(type: EffectType): void {
     const newRows = [...rows, { id: getID(), type }]
     setRows(newRows)
   }
@@ -78,7 +77,7 @@ export function EffectList({
                 <EffectListItem
                   removeRow={() => removeRow(row)}
                   row={row}
-                  setRowData={setRowData}
+                  updateRow={(data) => setRowData(row.id, data)}
                 />
               </li>
             )
@@ -92,57 +91,108 @@ export function EffectList({
 function EffectListItem({
   removeRow,
   row,
-  setRowData,
+  updateRow,
 }: {
   row: EffectData
   removeRow: () => void
-  setRowData: (key: string, data: Partial<EffectData>) => void
+  updateRow: (data: Partial<EffectData>) => void
 }): JSX.Element {
-  let choices: null | string[] = null
-  if (row.type == "Färdighetsenheter") {
-    choices = SKILL_GROUPS.map((x) => x.name)
-  }
-  if (row.type == TABELLSLAG) {
-    choices = TABLE_GROUPS.map((x) => x.name)
-  }
-  if (row.type == "Attribut") {
-    choices = ATTRIBUTES.concat(ATTRIBUTES_SECONDARY)
-  }
   const topRow = (
     <div className="flex items-center justify-between">
       <span className="italic text-sm">{row.type}</span>
       <MinusButton onClick={removeRow} />
     </div>
   )
-  if (row.type == "Annat") {
+  if (row.type == EffectType.ANNAT) {
     return (
       <>
         {topRow}
         <div className="flex">
-          <textarea className="w-full border col-span-2" />
+          <textarea
+            className="w-full border col-span-2"
+            value={row.bonus}
+            onChange={(e) => {
+              updateRow({ bonus: e.currentTarget.value })
+            }}
+          />
         </div>
       </>
     )
   }
+
+  let choices = getChoices(row)
+  const setBonus = (value: any) => updateRow({ bonus: value })
+  const isDieInput = row.type == EffectType.ATTRIBUTE
   return (
     <>
       {topRow}
       <div className="flex">
         <input
           className="w-16 mr-4 border"
-          onChange={(e) => setRowData(row.id, { bonus: e.currentTarget.value })}
-          type="text"
+          onChange={(e) => setBonus(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (isDieInput) {
+              if (e.key === "ArrowUp") {
+                setBonus(nextDieValue(row.bonus))
+                e.preventDefault()
+              }
+              if (e.key === "ArrowDown") {
+                setBonus(prevDieValue(row.bonus))
+                e.preventDefault()
+              }
+            }
+          }}
+          min={
+            row.type === EffectType.TABELLSLAG ||
+            row.type === EffectType.SKILLPOINTS
+              ? 0
+              : undefined
+          }
+          type={
+            row.type === EffectType.TABELLSLAG ||
+            row.type === EffectType.SKILLPOINTS
+              ? "number"
+              : "text"
+          }
           value={row.bonus || ""}
         />
         {choices && (
           <DropdownCombobox
             className="mr-4 border"
             items={choices}
-            onChange={(e) => setRowData(row.id, { name: e })}
+            onChange={(e) => updateRow({ name: e })}
             value={row.name}
           />
         )}
       </div>
     </>
   )
+}
+
+function getChoices(row: EffectData): null | string[] {
+  let choices: null | string[] = null
+  if (row.type == EffectType.SKILLPOINTS) {
+    choices = SKILL_GROUPS.map((x) => x.name)
+  }
+  if (row.type == EffectType.TABELLSLAG) {
+    choices = TABLE_GROUPS.map((x) => x.name)
+  }
+  if (row.type == EffectType.ATTRIBUTE) {
+    choices = ATTRIBUTES.concat(ATTRIBUTES_SECONDARY)
+  }
+  return choices
+}
+
+function nextDieValue(value?: string) {
+  if (!value) {
+    return "1T6"
+  }
+  return dieFormat(addDice(parseDie(value), { dice: 1, mod: 0 }))
+}
+
+function prevDieValue(value?: string) {
+  if (!value) {
+    return ""
+  }
+  return dieFormat(addDice(parseDie(value), { dice: -1, mod: 0 }))
 }

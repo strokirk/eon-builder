@@ -2,6 +2,11 @@
 @tailwind utilities;
 @tailwind components;
 
+@font-face {
+    font-family: 'Vinque';
+    src: url('src/vinque-rg.otf');
+}
+
 :root {
   --beige-100: #eee0c7;
   --beige-200: #fff0db;
@@ -46,7 +51,7 @@ h4,
 h5,
 h6 {
   color: var(--eon-red);
-  font-family: Cormorant, serif;
+  font-family: Vinque, Cormorant, serif;
   font-weight: 400;
 }
 
@@ -99,4 +104,9 @@ textarea {
   > *:last-child {
     @apply rounded-r-lg  border-r;
   }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
 }

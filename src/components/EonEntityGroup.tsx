@@ -4,13 +4,16 @@ import { MinusButton, PlusButton } from "../buttons"
 import { GlobalData } from "../contexts"
 import { useRows } from "../hooks/use-rows"
 
-export function EonPossessions() {
+export function EonEntityGroup({ type }: { type: string }) {
   const [char, setChar] = useContext(GlobalData)
 
-  let { addRow, removeRow, rows, updateRow } = useRows(char.possessions)
+  let { addRow, removeRow, rows, updateRow } = useRows<{
+    title: string
+    contents: string
+  }>(char[type] || [{}])
 
   useEffect(() => {
-    setChar({ possessions: rows.map(({ id: _id, ...r }) => r) })
+    setChar({ [type]: rows.map(({ id: _id, ...r }) => r) })
   }, [rows])
 
   return (
@@ -25,7 +28,7 @@ export function EonPossessions() {
                   updateRow(row.id, { title: e.currentTarget.value })
                 }
                 type="text"
-                value={row.title}
+                value={row.value.title}
               />
               <MinusButton onClick={() => removeRow(row.id)} />
             </div>
@@ -34,7 +37,7 @@ export function EonPossessions() {
               onChange={(e) =>
                 updateRow(row.id, { contents: e.currentTarget.value })
               }
-              value={row.contents}
+              value={row.value.contents}
             ></textarea>
           </li>
         ))}

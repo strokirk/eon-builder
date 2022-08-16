@@ -1,15 +1,15 @@
-import { useContext, useEffect, useState } from "react"
-
 import { MinusButton, PlusButton } from "../buttons"
-import { GlobalData } from "../contexts"
 import { TABLE_GROUPS } from "../data"
-import { Char, TABELLSLAG } from "../types"
-import { getID } from "../utils"
+import { useCharEffectsSelector } from "../hooks/use-char-effects-selector"
+import { useCharValueList } from "../hooks/use-char-value-list"
+import { Effect, EffectType } from "../types"
 import { DropdownCombobox } from "./DropdownCombobox"
 
 export function EonEvents() {
-  const [char] = useContext(GlobalData)
-  const sums = getTableRollSums(char)
+  const effects = useCharEffectsSelector().filter(
+    (x) => x.type === EffectType.TABELLSLAG,
+  )
+  const sums = getTableRollSums(effects)
   return (
     <div>
       <ul>
@@ -24,23 +24,14 @@ export function EonEvents() {
   )
 }
 
-function getTableRollSums(char: Char): { name: string; bonus: number }[] {
-  const lists = [
-    //
-    char.Bakgrund,
-    char.archetype,
-    char.environment,
-    char.tribe,
-  ]
-  let effects = lists
-    .flatMap((x) => x?.effects || [])
-    .filter((x) => x.type === TABELLSLAG)
-
+function getTableRollSums(
+  effects: Effect[],
+): { name: string; bonus: number }[] {
   const sums: Record<string, number> = {}
   for (const effect of effects) {
     const bonus = +(effect.bonus || 0)
     let name = effect.name || ""
-    if (name != "" && Number.isInteger(bonus)) {
+    if (effect.name && Number.isInteger(bonus)) {
       sums[name] = (sums[name] || 0) + bonus
     }
   }
@@ -50,57 +41,21 @@ function getTableRollSums(char: Char): { name: string; bonus: number }[] {
 }
 
 function EventList() {
-  const [char, setChar] = useContext(GlobalData)
-
-  const { addRow, getRowsWithoutID, removeRow, rows, setRowData } = useRows(
-    char.events || [{}],
-  )
-  useEffect(() => {
-    setChar({ events: getRowsWithoutID() })
-  }, [rows])
+  const { addRow, removeRow, rows, updateRow } = useCharValueList<EonEvent>({
+    field: "events",
+  })
 
   return (
     <div>
       <ul className="my-2 space-y-2">
         {rows.map((row) => {
           return (
-            <li className="flex flex-col max-w-md" key={row.id}>
-              <div className="flex gap-2 mb-2">
-                <DropdownCombobox
-                  className="mr-4 border"
-                  items={TABLE_GROUPS.map((group) => group.name)}
-                  onChange={(e) => setRowData(row.id, { id: row.id, table: e })}
-                  placeholder="Tabell"
-                  value={row.table}
-                />
-                <input
-                  className="w-16"
-                  onChange={(e) =>
-                    setRowData(row.id, { number: e.currentTarget.value })
-                  }
-                  placeholder="T100"
-                  type="text"
-                  value={row.number}
-                />
-                <input
-                  onChange={(e) =>
-                    setRowData(row.id, { title: e.currentTarget.value })
-                  }
-                  placeholder="Händelse"
-                  type="text"
-                  value={row.title}
-                />
-                <MinusButton onClick={() => removeRow(row.id)} />
-              </div>
-
-              <textarea
-                onChange={(e) =>
-                  setRowData(row.id, { content: e.currentTarget.value })
-                }
-                placeholder="Beskrivning"
-                value={row.content}
-              />
-            </li>
+            <EventListItem
+              key={row.id}
+              updateRow={(d) => updateRow(row.id, d)}
+              removeRow={() => removeRow(row.id)}
+              event={row.value}
+            />
           )
         })}
       </ul>
@@ -109,32 +64,50 @@ function EventList() {
   )
 }
 
-type RowData = {
-  [k: string]: string
-  id: string
+type EonEvent = {
+  table: string
+  number: string
+  title: string
+  content: string
 }
-function useRows(initialRows: Record<string, string>[]) {
-  let [rows, setRows] = useState<RowData[]>(
-    initialRows.map((r) => ({ ...r, id: getID() })) || [{ id: getID() }],
+
+function EventListItem(props: {
+  removeRow: () => void
+  updateRow: (arg0: Partial<EonEvent>) => void
+  event: EonEvent
+}) {
+  const event = props.event
+  return (
+    <li className="flex flex-col max-w-md">
+      <div className="flex gap-2 mb-2">
+        <DropdownCombobox
+          placeholder="Tabell"
+          className="mr-4 border"
+          items={TABLE_GROUPS.map((group) => group.name)}
+          onChange={(e) => props.updateRow({ table: e })}
+          value={event.table || ""}
+        />
+        <input
+          type="text"
+          placeholder="T100"
+          className="w-16"
+          onChange={(e) => props.updateRow({ number: e.currentTarget.value })}
+          value={event.number || ""}
+        />
+        <input
+          type="text"
+          placeholder="Händelse"
+          onChange={(e) => props.updateRow({ title: e.currentTarget.value })}
+          value={event.title || ""}
+        />
+        <MinusButton onClick={() => props.removeRow()} />
+      </div>
+
+      <textarea
+        onChange={(e) => props.updateRow({ content: e.currentTarget.value })}
+        placeholder="Beskrivning"
+        value={event.content}
+      />
+    </li>
   )
-
-  function setRowData(key: string, data: any) {
-    setRows((r) => r.map((x) => (x.id === key ? { ...x, ...data } : x)))
-  }
-
-  function removeRow(key: string) {
-    setRows((rows) => rows.filter((x) => x.id !== key))
-  }
-
-  function addRow() {
-    setRows((r) => r.concat({ id: getID() }))
-  }
-
-  return {
-    addRow,
-    removeRow,
-    rows,
-    setRowData,
-    getRowsWithoutID: () => rows.map(({ id: _id, ...r }) => r),
-  }
 }

@@ -22,15 +22,16 @@ export type Char = {
 export type Effect = {
   bonus?: string
   name?: string
-  type: string
+  type: EffectType
 }
-
-export const ATTRIBUTE = "Attribut"
-
-export const SKILLPOINTS = "Färdighetsenheter"
-
-export const TABELLSLAG = "Tabellslag"
 
 export type Effects = {
   Tabellslag: { bonus: string; name: string }[]
+}
+
+export enum EffectType {
+  SKILLPOINTS = "Färdighetsenheter",
+  TABELLSLAG = "Tabellslag",
+  ATTRIBUTE = "Attribut",
+  ANNAT = "Annat",
 }
