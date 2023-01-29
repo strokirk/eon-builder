@@ -1,9 +1,12 @@
+import { useState } from "react"
+
 import { MinusButton, PlusButton } from "../buttons"
 import { TABLE_GROUPS } from "../data"
 import { useCharEffectsSelector } from "../hooks/use-char-effects-selector"
 import { useCharValueList } from "../hooks/use-char-value-list"
 import { Effect, EffectType } from "../types"
 import { DropdownCombobox } from "./DropdownCombobox"
+import { EffectData, EffectList } from "./EffectList"
 
 export function EonEvents() {
   const effects = useCharEffectsSelector().filter(
@@ -65,6 +68,7 @@ function EventList() {
 }
 
 type EonEvent = {
+  effects?: EffectData[]
   table: string
   number: string
   title: string
@@ -76,6 +80,7 @@ function EventListItem(props: {
   updateRow: (arg0: Partial<EonEvent>) => void
   event: EonEvent
 }) {
+  const [effects, setEffects] = useState(props.event.effects || [])
   const event = props.event
   return (
     <li className="flex flex-col max-w-md">
@@ -107,6 +112,14 @@ function EventListItem(props: {
         onChange={(e) => props.updateRow({ content: e.currentTarget.value })}
         placeholder="Beskrivning"
         value={event.content}
+      />
+
+      <EffectList
+        effects={effects}
+        allowEvents={false}
+        onChange={(e) => {
+          props.updateRow({ effects: e })
+        }}
       />
     </li>
   )

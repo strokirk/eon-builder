@@ -12,12 +12,11 @@ export function dropKey(obj: any, key: string) {
 }
 
 export function EonSkillList() {
-  const effects = useCharEffectsSelector().filter(
-    (x) => x.type === EffectType.SKILLPOINTS,
-  )
-  const sums = getEffectSums(effects)
-
   const [char, setChar] = useContext(GlobalData)
+  const effects = useCharEffectsSelector()
+    .concat(char.events?.flatMap((e) => e.effects) || [])
+    .filter((x) => x.type === EffectType.SKILLPOINTS)
+  const sums = getEffectSums(effects)
 
   let { addRow, removeRow, rows, updateRow, getValues } = useRows<{
     title: string

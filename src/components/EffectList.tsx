@@ -29,9 +29,11 @@ export type EffectData = {
 export function EffectList({
   effects,
   onChange,
+  allowEvents = true,
 }: {
   effects?: EffectData[]
   onChange?: (e: EffectData[]) => void
+  allowEvents?: boolean
 }) {
   const [rows, setRows] = useState<EffectData[]>(
     effects?.map((e) => ({ ...e, id: getID() })) || [],
@@ -58,17 +60,19 @@ export function EffectList({
       <span>Lägg till effekter:</span>
       <div className="w-72 mt-1">
         <div className="button-group mb-2">
-          {types.map((type) => (
-            <button
-              className=""
-              key={type}
-              onClick={() => {
-                addNewEffect(type)
-              }}
-            >
-              {type}
-            </button>
-          ))}
+          {types
+            .filter((t) => allowEvents || t !== EffectType.TABELLSLAG)
+            .map((type) => (
+              <button
+                className=""
+                key={type}
+                onClick={() => {
+                  addNewEffect(type)
+                }}
+              >
+                {type}
+              </button>
+            ))}
         </div>
         <ul>
           {rows.map((row) => {

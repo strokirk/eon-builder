@@ -1,11 +1,11 @@
-import { useContext, useEffect, useState } from "react"
+import { useState } from "react"
 
 import { GlobalData } from "../contexts"
 import { ATTRIBUTES } from "../data"
 import { formatExport } from "../export"
 import { useSavedCharacterData } from "../hooks/use-saved-character-data"
-import { EffectData, EffectList } from "./EffectList"
 import { AttributeGroup, SecondaryAttributeGroup } from "./EonAttributes"
+import { EonBackground } from "./EonBackground"
 import { EonChoice } from "./EonChoice"
 import { EonEntityGroup } from "./EonEntityGroup"
 import { EonEvents } from "./EonEvents"
@@ -80,11 +80,11 @@ export default function EonChar() {
         <TogglableSection name="Avtrubbning">
           <EonMentalTrauma />
         </TogglableSection>
-        <TogglableSection name="Ägodelar">
-          <EonEntityGroup type="possessions" />
-        </TogglableSection>
         <TogglableSection name="Kontakter">
           <EonEntityGroup type="contacts" />
+        </TogglableSection>
+        <TogglableSection name="Ägodelar">
+          <EonEntityGroup type="possessions" />
         </TogglableSection>
         <TogglableSection name="Övriga anteckningar">
           <EonEntityGroup type="notes" />
@@ -93,42 +93,6 @@ export default function EonChar() {
     </GlobalData.Provider>
   )
 }
-function EonBackground() {
-  const [char, setChar] = useContext(GlobalData)
-  const [number, setNumber] = useState(char?.Bakgrund?.number)
-  const [name, setName] = useState(char?.Bakgrund?.name)
-  const [effects, setEffects] = useState(
-    (char?.Bakgrund?.effects || []) as EffectData[],
-  )
-  useEffect(() => {
-    setChar({ Bakgrund: { effects, name, number } })
-  }, [number, name, effects])
-  return (
-    <div>
-      <div className="mb-2 space-x-2 ">
-        <input
-          className="w-16 placeholder:italic"
-          onChange={(e) => setNumber(e.currentTarget.value)}
-          placeholder="00"
-          type="text"
-          value={number}
-        />
-        <input
-          onChange={(e) => setName(e.currentTarget.value)}
-          type="text"
-          value={name}
-        ></input>
-      </div>
-      <EffectList
-        effects={effects}
-        onChange={(e) => {
-          setEffects(e)
-        }}
-      />
-    </div>
-  )
-}
-
 function EonMentalTrauma() {
   const names = ["Utsatthet", "Våld", "Övernaturligt"]
   const rows = names.map((name, key) => (
@@ -139,10 +103,5 @@ function EonMentalTrauma() {
       </label>
     </div>
   ))
-  return (
-    <div className="space-y-2">
-      {rows}
-      <div>Välmående</div>
-    </div>
-  )
+  return <div className="space-y-2">{rows}</div>
 }

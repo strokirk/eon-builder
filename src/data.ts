@@ -51,6 +51,7 @@ export const ATTRIBUTES_SECONDARY = [
   "Självkontroll",
   "Vaksamhet",
   "Grundskada",
+  "Livskraft",
 ]
 
 export const TABLE_GROUPS = [
