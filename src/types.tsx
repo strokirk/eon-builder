@@ -17,6 +17,7 @@ export type Char = {
   events?: any[]
   notes?: { title: string; contents: string }[]
   tribe?: { effects: Effect[]; value: string }
+  attributes?: { [k: string]: any }
 }
 
 export type Effect = {

@@ -15,7 +15,7 @@ export function EonSkillList() {
   const [char, setChar] = useContext(GlobalData)
   const effects = useCharEffectsSelector()
     .concat(char.events?.flatMap((e) => e.effects) || [])
-    .filter((x) => x.type === EffectType.SKILLPOINTS)
+    .filter((x) => x?.type === EffectType.SKILLPOINTS)
   const sums = getEffectSums(effects)
 
   let { addRow, removeRow, rows, updateRow, getValues } = useRows<{

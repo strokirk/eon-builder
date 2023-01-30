@@ -41,7 +41,7 @@
   "scripts": {
     "build": "tsc && vite build",
     "lint:js": "eslint src",
-    "prettier": "prettier -w src",
+    "format": "prettier -w src",
     "preview": "vite preview",
     "start": "vite",
     "test": "jest"

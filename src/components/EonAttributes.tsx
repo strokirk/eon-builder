@@ -50,7 +50,7 @@ export function AttributeAdderRow(props: { name: string }) {
 
   let diceMods: Die[] = useCharEffectsSelector()
     .concat(char.events?.flatMap((e) => e.effects) || [])
-    .filter((e) => e.type === EffectType.ATTRIBUTE)
+    .filter((e) => e?.type === EffectType.ATTRIBUTE)
     .filter((e) => e.name === props.name)
     .map((e) => parseDie(e.bonus || "0T6"))
 
@@ -86,19 +86,20 @@ export function AttributeAdderRow(props: { name: string }) {
 }
 
 function calculateSecondaryAttributes(name: string, char: Char) {
+  const attrs = char?.attributes
   switch (name) {
     case "Förflyttning":
-      return dieMean(char.attributes.Rörlighet, char.attributes.Tålighet)
+      return dieMean(attrs?.Rörlighet, attrs?.Tålighet)
     case "Intryck":
-      return dieMean(char.attributes.Utstrålning, char.attributes.Visdom)
+      return dieMean(attrs?.Utstrålning, attrs?.Visdom)
     case "Kroppsbyggnad":
-      return dieMean(char.attributes.Styrka, char.attributes.Tålighet)
+      return dieMean(attrs?.Styrka, attrs?.Tålighet)
     case "Reaktion":
-      return dieMean(char.attributes.Rörlighet, char.attributes.Uppfattning)
+      return dieMean(attrs?.Rörlighet, attrs?.Uppfattning)
     case "Självkontroll":
-      return dieMean(char.attributes.Psyke, char.attributes.Vilja)
+      return dieMean(attrs?.Psyke, attrs?.Vilja)
     case "Vaksamhet":
-      return dieMean(char.attributes.Psyke, char.attributes.Uppfattning)
+      return dieMean(attrs?.Psyke, attrs?.Uppfattning)
     case "Livskraft":
       return lifeDie(char)
     case "Grundskada":
@@ -126,7 +127,7 @@ function halfDie(a: Die): Die {
 }
 
 function damageDie(char: Char): Die {
-  const a = char.attributes.Styrka
+  const a = char?.attributes?.Styrka
   const base = { dice: 1, mod: 0 }
   if (!a) {
     return base
@@ -135,8 +136,8 @@ function damageDie(char: Char): Die {
 }
 
 function lifeDie(char: Char): Die {
-  const a = char.attributes.Tålighet
-  const b = char.attributes.Vilja
+  const a = char?.attributes?.Tålighet
+  const b = char?.attributes?.Vilja
   const base = { dice: 3, mod: 0 }
   if (!a || !b) {
     return base
