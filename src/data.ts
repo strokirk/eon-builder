@@ -40,6 +40,7 @@ export const ATTRIBUTES = [
   "Uppfattning",
   "Psyke",
   "Vilja",
+  "Visdom",
   "Utstrålning",
 ]
 
