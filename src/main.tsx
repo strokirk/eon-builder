@@ -1,7 +1,7 @@
 import React from "react"
 import { createRoot } from "react-dom/client"
 
-import EonChar from "./components/EonChar"
+import { App } from "./App"
 import "./index.scss"
 
 const rootElm = document.createElement("div")
@@ -11,6 +11,6 @@ document.body.appendChild(rootElm)
 const root = createRoot(rootElm)
 root.render(
   <React.StrictMode>
-    <EonChar />
+    <App />
   </React.StrictMode>,
 )

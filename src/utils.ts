@@ -34,11 +34,7 @@ export function parseDie(text: string): Die {
   }
 }
 
-export function joinArray(
-  array: any[],
-  separator = ", ",
-  lastSeparator = " & ",
-) {
+export function joinArray(array: any[], separator = ", ", lastSeparator = " & ") {
   if (array.length < 2) return array
   const joined: any[] = []
   array.forEach((element, i) => {

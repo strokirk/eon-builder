@@ -24,9 +24,7 @@ export function EonEntityGroup({ type }: { type: string }) {
             <div className="flex items-center gap-4 mb-2">
               <input
                 className="w-full"
-                onChange={(e) =>
-                  updateRow(row.id, { title: e.currentTarget.value })
-                }
+                onChange={(e) => updateRow(row.id, { title: e.currentTarget.value })}
                 type="text"
                 value={row.value.title}
               />
@@ -34,9 +32,7 @@ export function EonEntityGroup({ type }: { type: string }) {
             </div>
             <textarea
               className="w-full"
-              onChange={(e) =>
-                updateRow(row.id, { contents: e.currentTarget.value })
-              }
+              onChange={(e) => updateRow(row.id, { contents: e.currentTarget.value })}
               value={row.value.contents}
             ></textarea>
           </li>

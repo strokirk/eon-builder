@@ -40,18 +40,14 @@ export function EonSkillList() {
             <input
               className="w-16 uppercase mr-2"
               placeholder="1T6"
-              onChange={(e) =>
-                updateRow(row.id, { contents: e.currentTarget.value })
-              }
+              onChange={(e) => updateRow(row.id, { contents: e.currentTarget.value })}
               type="text"
               value={row.value.contents || ""}
             />
             <input
               className=""
               placeholder="Färdighet"
-              onChange={(e) =>
-                updateRow(row.id, { title: e.currentTarget.value })
-              }
+              onChange={(e) => updateRow(row.id, { title: e.currentTarget.value })}
               type="text"
               value={row.value.title || ""}
             />

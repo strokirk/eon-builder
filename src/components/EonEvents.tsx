@@ -9,9 +9,7 @@ import { DropdownCombobox } from "./DropdownCombobox"
 import { EffectData, EffectList } from "./EffectList"
 
 export function EonEvents() {
-  const effects = useCharEffectsSelector().filter(
-    (x) => x.type === EffectType.TABELLSLAG,
-  )
+  const effects = useCharEffectsSelector().filter((x) => x.type === EffectType.TABELLSLAG)
   const sums = getTableRollSums(effects)
   return (
     <div>
@@ -27,9 +25,7 @@ export function EonEvents() {
   )
 }
 
-function getTableRollSums(
-  effects: Effect[],
-): { name: string; bonus: number }[] {
+function getTableRollSums(effects: Effect[]): { name: string; bonus: number }[] {
   const sums: Record<string, number> = {}
   for (const effect of effects) {
     const bonus = +(effect.bonus || 0)

@@ -55,20 +55,14 @@ export function DropdownCombobox({
       </div>
       <ul
         {...getMenuProps()}
-        className={classNames(
-          isOpen && "absolute bg-white border p-2 top-10 z-10 space-y-1",
-        )}
+        className={classNames(isOpen && "absolute bg-white border p-2 top-10 z-10 space-y-1")}
       >
         {isOpen &&
           inputItems.map((item, index) => {
             return (
               <li
                 key={`${item}${index}`}
-                style={
-                  highlightedIndex === index
-                    ? { backgroundColor: "#bde4ff" }
-                    : {}
-                }
+                style={highlightedIndex === index ? { backgroundColor: "#bde4ff" } : {}}
                 {...getItemProps({ item, index })}
               >
                 {item}

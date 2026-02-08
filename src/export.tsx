@@ -18,9 +18,7 @@ export function formatExport(char: Char): string {
   if (events.length > 0) {
     rows.push("Händelser:")
     for (const event of events) {
-      rows.push(
-        `  ${event.table || ""} ${event.number || ""} - ${event.title || ""}`,
-      )
+      rows.push(`  ${event.table || ""} ${event.number || ""} - ${event.title || ""}`)
     }
   }
   return rows.join("\n")

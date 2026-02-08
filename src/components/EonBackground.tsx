@@ -7,9 +7,7 @@ export function EonBackground() {
   const [char, setChar] = useContext(GlobalData)
   const [number, setNumber] = useState(char?.Bakgrund?.number)
   const [name, setName] = useState(char?.Bakgrund?.name)
-  const [effects, setEffects] = useState(
-    (char?.Bakgrund?.effects || []) as EffectData[],
-  )
+  const [effects, setEffects] = useState((char?.Bakgrund?.effects || []) as EffectData[])
   useEffect(() => {
     setChar({ Bakgrund: { effects, name, number } })
   }, [number, name, effects])
@@ -23,11 +21,7 @@ export function EonBackground() {
           type="text"
           value={number}
         />
-        <input
-          onChange={(e) => setName(e.currentTarget.value)}
-          type="text"
-          value={name}
-        ></input>
+        <input onChange={(e) => setName(e.currentTarget.value)} type="text" value={name}></input>
       </div>
       <EffectList
         effects={effects}

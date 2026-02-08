@@ -8,8 +8,10 @@ const STORAGE_KEY = "eonChar"
 const SAVE_DEBOUNCE = 1000
 
 export function useSavedCharacterData() {
-  const [storedValue, setLocalStorageValue, removeLocalStorageValue] =
-    useLocalStorage(STORAGE_KEY, DefaultCharacterStore)
+  const [storedValue, setLocalStorageValue, removeLocalStorageValue] = useLocalStorage(
+    STORAGE_KEY,
+    DefaultCharacterStore,
+  )
 
   const [char, _setChar] = useState(storedValue || {})
 

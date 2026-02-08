@@ -2,12 +2,7 @@ import { useState } from "react"
 import useUpdateEffect from "react-use/lib/useUpdateEffect"
 
 import { MinusButton } from "../buttons"
-import {
-  ATTRIBUTES,
-  ATTRIBUTES_SECONDARY,
-  SKILL_GROUPS,
-  TABLE_GROUPS,
-} from "../data"
+import { ATTRIBUTES, ATTRIBUTES_SECONDARY, SKILL_GROUPS, TABLE_GROUPS } from "../data"
 import { EffectType } from "../types"
 import { addDice, dieFormat, getID, parseDie } from "../utils"
 import { DropdownCombobox } from "./DropdownCombobox"
@@ -35,9 +30,7 @@ export function EffectList({
   onChange?: (e: EffectData[]) => void
   allowEvents?: boolean
 }) {
-  const [rows, setRows] = useState<EffectData[]>(
-    effects?.map((e) => ({ ...e, id: getID() })) || [],
-  )
+  const [rows, setRows] = useState<EffectData[]>(effects?.map((e) => ({ ...e, id: getID() })) || [])
   useUpdateEffect(() => {
     onChange?.(rows)
   }, [rows])
@@ -147,14 +140,12 @@ function EffectListItem({
             }
           }}
           min={
-            row.type === EffectType.TABELLSLAG ||
-            row.type === EffectType.SKILLPOINTS
+            row.type === EffectType.TABELLSLAG || row.type === EffectType.SKILLPOINTS
               ? 0
               : undefined
           }
           type={
-            row.type === EffectType.TABELLSLAG ||
-            row.type === EffectType.SKILLPOINTS
+            row.type === EffectType.TABELLSLAG || row.type === EffectType.SKILLPOINTS
               ? "number"
               : "text"
           }

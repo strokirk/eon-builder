@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { hashValue } from "solid-js/types/reactive/signal"
 
 import { getID } from "../utils"
 
@@ -15,11 +14,7 @@ export function useRows<C>(initial?: C[]) {
   )
 
   function updateRow(key: string, data: Partial<C>) {
-    setRows((r) =>
-      r.map((x) =>
-        x.id === key ? { ...x, value: { ...x.value, ...data } } : x,
-      ),
-    )
+    setRows((r) => r.map((x) => (x.id === key ? { ...x, value: { ...x.value, ...data } } : x)))
   }
 
   function removeRow(key: string) {

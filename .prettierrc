@@ -1,6 +1,0 @@
-importOrderSeparation: true
-importOrder: ["react", "./"]
-semi: false
-tabWidth: 2
-trailingComma: "all"
-useTabs: false

@@ -10,9 +10,7 @@ import { DiceInput } from "./DiceInput"
 export function AttributeGroup({ attributes }: { attributes: string[] }) {
   const headerNames = ["Attributnamn", "Summa", "Grundtärningar", "Modifierare"]
   const headers = headerNames.map((n, i) => <th key={i}>{n}</th>)
-  const rows = attributes.map((attr) => (
-    <AttributeAdderRow key={attr} name={attr} />
-  ))
+  const rows = attributes.map((attr) => <AttributeAdderRow key={attr} name={attr} />)
   return (
     <div>
       <table className="table-condensed">
@@ -36,9 +34,7 @@ export function SecondaryAttributeGroup() {
 export function AttributeAdderRow(props: { name: string }) {
   const [char, setChar] = useContext(GlobalData)
 
-  const [value, setValue] = useState<Die>(
-    char.attributePoints?.[props.name] || { dice: 0, mod: 0 },
-  )
+  const [value, setValue] = useState<Die>(char.attributePoints?.[props.name] || { dice: 0, mod: 0 })
 
   let base = { dice: 0, mod: 0 }
   if (ATTRIBUTES_SECONDARY.includes(props.name)) {
