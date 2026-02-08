@@ -1,0 +1,792 @@
+import { useState } from "react"
+
+import { MinusButton, PlusButton } from "../buttons"
+import { useEon5Dispatch, useEon5State } from "../eon5-context"
+import {
+  DESENSITIZATION_CATEGORIES,
+  DYNAMIC_SKILL_TYPES,
+  MAX_SKILL_VALUE,
+  SKILL_STATUS_INFO,
+  type DynamicSkillType,
+  type SkillGroupName,
+  type SkillStatus,
+  type UnitType,
+} from "../eon5-data"
+import type { Eon5Skill } from "../eon5-types"
+import {
+  computeTotalUnitsAvailable,
+  computeTotalUnitsSpent,
+  getFinalAttributeValue,
+  getWisdomEntry,
+  skillValueToDice,
+} from "../eon5-utils"
+
+export function Eon5Skills() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+
+  const totalAvailable = computeTotalUnitsAvailable(state)
+  const totalSpent = computeTotalUnitsSpent(state)
+  const remaining = totalAvailable - totalSpent
+
+  return (
+    <div className="space-y-6">
+      <h3>Steg 2–4: Färdigheter & Enheter</h3>
+
+      {/* Unit pool summary */}
+      <UnitPoolSummary />
+
+      {/* Specific unit allocations input */}
+      <SpecificUnitsInput />
+
+      {/* Group unit allocations input */}
+      <GroupUnitsInput />
+
+      {/* Free units input */}
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium">Valfria enheter:</label>
+        <input
+          type="number"
+          className="w-16 text-center"
+          min={0}
+          value={state.freeUnits || ""}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_FREE_UNITS",
+              units: parseInt(e.target.value) || 0,
+            })
+          }
+        />
+      </div>
+
+      {/* Budget bar */}
+      <div className="text-sm p-2 border rounded bg-gray-50">
+        <span className="font-medium">Enhetsbudget:</span>{" "}
+        <span>{totalSpent}</span> / <span>{totalAvailable}</span> spenderade
+        {remaining > 0 && (
+          <span className="text-amber-600 ml-2">
+            ({remaining} kvar att spendera)
+          </span>
+        )}
+        {remaining < 0 && (
+          <span className="text-red-600 ml-2">
+            ({Math.abs(remaining)} för mycket!)
+          </span>
+        )}
+        {remaining === 0 && (
+          <span className="text-green-600 ml-2">(alla spenderade)</span>
+        )}
+      </div>
+
+      {/* Skill groups */}
+      <SkillGroupSection
+        title="Kunskapsfärdigheter"
+        group="Kunskapsfärdigheter"
+      />
+      <SkillGroupSection
+        title="Mystikfärdigheter"
+        group="Mystikfärdigheter"
+      />
+      <SkillGroupSection
+        title="Rörelsefärdigheter"
+        group="Rörelsefärdigheter"
+      />
+      <SkillGroupSection
+        title="Sociala färdigheter"
+        group="Sociala färdigheter"
+      />
+      <SkillGroupSection
+        title="Stridsfärdigheter"
+        group="Stridsfärdigheter"
+      />
+      <SkillGroupSection
+        title="Vildmarksfärdigheter"
+        group="Vildmarksfärdigheter"
+      />
+
+      {/* Dynamic skills (Övriga färdigheter) */}
+      <DynamicSkillsSection />
+
+      {/* Desensitization */}
+      <DesensitizationSection />
+
+      {/* Languages */}
+      <LanguagesSection />
+
+      {/* Mysteries */}
+      <MysteriesSection />
+    </div>
+  )
+}
+
+function UnitPoolSummary() {
+  const state = useEon5State()
+
+  const wisdomAttr = state.attributes["Visdom"]
+  const wisdomFinal = getFinalAttributeValue(wisdomAttr)
+  const hasWisdom = wisdomAttr.assignedChunk !== null
+  const wisdomEntry = hasWisdom ? getWisdomEntry(wisdomFinal) : null
+
+  return (
+    <div className="text-sm p-3 border rounded bg-gray-50 space-y-1">
+      <h4 className="font-medium">Enhetssammanställning</h4>
+      {state.specificUnits.length > 0 && (
+        <div>
+          <span className="font-medium">Specifika: </span>
+          {state.specificUnits.map((u, i) => (
+            <span key={i}>
+              {u.skill} ({u.units})
+              {i < state.specificUnits.length - 1 ? ", " : ""}
+            </span>
+          ))}
+        </div>
+      )}
+      {state.groupUnits.length > 0 && (
+        <div>
+          <span className="font-medium">Gruppenheter: </span>
+          {state.groupUnits.map((u, i) => (
+            <span key={i}>
+              {u.group} ({u.units})
+              {i < state.groupUnits.length - 1 ? ", " : ""}
+            </span>
+          ))}
+        </div>
+      )}
+      {state.freeUnits > 0 && (
+        <div>
+          <span className="font-medium">Valfria: </span>
+          {state.freeUnits}
+        </div>
+      )}
+      {wisdomEntry && wisdomEntry.extraUnits > 0 && (
+        <div>
+          <span className="font-medium">
+            Visdom bonus kunskapsenheter:{" "}
+          </span>
+          {wisdomEntry.extraUnits}
+        </div>
+      )}
+      {wisdomEntry && wisdomEntry.expertiseBonus > 0 && (
+        <div>
+          <span className="font-medium">Visdom expertisbonus: </span>
+          {wisdomEntry.expertiseBonus}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SpecificUnitsInput() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+  const [newSkill, setNewSkill] = useState("")
+  const [newUnits, setNewUnits] = useState(0)
+
+  const addAllocation = () => {
+    if (newSkill.trim() && newUnits > 0) {
+      dispatch({
+        type: "SET_SPECIFIC_UNITS",
+        allocations: [
+          ...state.specificUnits,
+          { skill: newSkill.trim(), units: newUnits },
+        ],
+      })
+      setNewSkill("")
+      setNewUnits(0)
+    }
+  }
+
+  const removeAllocation = (index: number) => {
+    dispatch({
+      type: "SET_SPECIFIC_UNITS",
+      allocations: state.specificUnits.filter((_, i) => i !== index),
+    })
+  }
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium">Specifika färdighetsenheter</h4>
+      {state.specificUnits.map((alloc, i) => (
+        <div key={i} className="flex items-center gap-2 text-sm">
+          <span>
+            {alloc.skill} ({alloc.units})
+          </span>
+          <MinusButton onClick={() => removeAllocation(i)} />
+        </div>
+      ))}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          className="flex-1"
+          placeholder="Färdighetsnamn"
+          value={newSkill}
+          onChange={(e) => setNewSkill(e.target.value)}
+        />
+        <input
+          type="number"
+          className="w-14 text-center"
+          min={1}
+          value={newUnits || ""}
+          onChange={(e) => setNewUnits(parseInt(e.target.value) || 0)}
+        />
+        <PlusButton onClick={addAllocation} />
+      </div>
+    </div>
+  )
+}
+
+function GroupUnitsInput() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+  const [newGroup, setNewGroup] = useState<UnitType>("Kunskapsenheter")
+  const [newUnits, setNewUnits] = useState(0)
+
+  const unitTypes: UnitType[] = [
+    "Kunskapsenheter",
+    "Mystikenheter",
+    "Rörelseenheter",
+    "Sociala enheter",
+    "Stridsenheter",
+    "Vildmarksenheter",
+  ]
+
+  const addAllocation = () => {
+    if (newUnits > 0) {
+      // Merge with existing allocation of same type
+      const existing = state.groupUnits.find((g) => g.group === newGroup)
+      if (existing) {
+        dispatch({
+          type: "SET_GROUP_UNITS",
+          allocations: state.groupUnits.map((g) =>
+            g.group === newGroup
+              ? { ...g, units: g.units + newUnits }
+              : g,
+          ),
+        })
+      } else {
+        dispatch({
+          type: "SET_GROUP_UNITS",
+          allocations: [
+            ...state.groupUnits,
+            { group: newGroup, units: newUnits },
+          ],
+        })
+      }
+      setNewUnits(0)
+    }
+  }
+
+  const removeAllocation = (index: number) => {
+    dispatch({
+      type: "SET_GROUP_UNITS",
+      allocations: state.groupUnits.filter((_, i) => i !== index),
+    })
+  }
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium">Gruppenheter</h4>
+      {state.groupUnits.map((alloc, i) => (
+        <div key={i} className="flex items-center gap-2 text-sm">
+          <span>
+            {alloc.group} ({alloc.units})
+          </span>
+          <MinusButton onClick={() => removeAllocation(i)} />
+        </div>
+      ))}
+      <div className="flex items-center gap-2">
+        <select
+          className="border rounded px-1 h-8"
+          value={newGroup}
+          onChange={(e) => setNewGroup(e.target.value as UnitType)}
+        >
+          {unitTypes.map((ut) => (
+            <option key={ut} value={ut}>
+              {ut}
+            </option>
+          ))}
+        </select>
+        <input
+          type="number"
+          className="w-14 text-center"
+          min={1}
+          value={newUnits || ""}
+          onChange={(e) => setNewUnits(parseInt(e.target.value) || 0)}
+        />
+        <PlusButton onClick={addAllocation} />
+      </div>
+    </div>
+  )
+}
+
+function SkillGroupSection({
+  title,
+  group,
+}: {
+  title: string
+  group: SkillGroupName
+}) {
+  const state = useEon5State()
+
+  const skills = [
+    ...state.skills.filter((s) => s.group === group),
+    ...state.dynamicSkills.filter((s) => s.group === group),
+  ]
+
+  if (skills.length === 0) return null
+
+  return (
+    <div className="space-y-1">
+      <h4 className="text-sm font-medium fg-eon-red">{title}</h4>
+      <table className="table-condensed w-full text-sm">
+        <thead>
+          <tr>
+            <th className="text-left">Färdighet</th>
+            <th className="text-center w-12">Grund</th>
+            <th className="text-center w-20">Enheter</th>
+            <th className="text-center w-12">Värde</th>
+            <th className="text-center w-16">Tärningar</th>
+            <th className="text-center w-16">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {skills.map((skill) => (
+            <SkillRow key={skill.name} skill={skill} />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+function SkillRow({ skill }: { skill: Eon5Skill }) {
+  const dispatch = useEon5Dispatch()
+  const totalValue = skill.baseValue + skill.spentUnits
+  const maxForStatus =
+    skill.status && skill.status in SKILL_STATUS_INFO
+      ? SKILL_STATUS_INFO[skill.status].maxValue
+      : MAX_SKILL_VALUE
+  const isOverMax = totalValue > maxForStatus
+  const overflow = isOverMax ? totalValue - maxForStatus : 0
+
+  return (
+    <tr className={isOverMax ? "bg-red-50" : ""}>
+      <td>
+        {skill.name}
+        {skill.dynamicType && (
+          <span className="text-xs text-gray-500 ml-1">
+            ({skill.dynamicType})
+          </span>
+        )}
+        {skill.isOmstöpt && (
+          <span className="text-xs text-purple-600 ml-1">(Omstöpt)</span>
+        )}
+      </td>
+      <td className="text-center">{skill.baseValue}</td>
+      <td className="text-center">
+        {skill.status === "B" ? (
+          <span className="text-gray-400">—</span>
+        ) : (
+          <div className="flex items-center justify-center gap-1">
+            <button
+              type="button"
+              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+              onClick={() =>
+                dispatch({
+                  type: "SET_SKILL_UNITS",
+                  skillName: skill.name,
+                  units: skill.spentUnits - 1,
+                })
+              }
+              disabled={skill.spentUnits <= 0}
+            >
+              -
+            </button>
+            <span className="w-6 text-center">{skill.spentUnits}</span>
+            <button
+              type="button"
+              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+              onClick={() =>
+                dispatch({
+                  type: "SET_SKILL_UNITS",
+                  skillName: skill.name,
+                  units: skill.spentUnits + 1,
+                })
+              }
+              disabled={totalValue >= maxForStatus}
+            >
+              +
+            </button>
+          </div>
+        )}
+      </td>
+      <td
+        className={`text-center font-bold ${isOverMax ? "text-red-600" : ""}`}
+      >
+        {totalValue}
+        {overflow > 0 && (
+          <span className="text-xs text-red-500 ml-1">
+            (+{overflow} overflow)
+          </span>
+        )}
+      </td>
+      <td className="text-center fn-dice">{skillValueToDice(totalValue)}</td>
+      <td className="text-center">
+        <select
+          className="text-xs border rounded px-1 h-6 w-14"
+          value={skill.status || ""}
+          onChange={(e) =>
+            dispatch({
+              type: "SET_SKILL_STATUS",
+              skillName: skill.name,
+              status: (e.target.value || null) as SkillStatus,
+            })
+          }
+        >
+          <option value="">—</option>
+          <option value="T">T</option>
+          <option value="I">I</option>
+          <option value="B">B</option>
+        </select>
+      </td>
+    </tr>
+  )
+}
+
+function DynamicSkillsSection() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+  const [newName, setNewName] = useState("")
+  const [newType, setNewType] = useState<DynamicSkillType>("E")
+  const [newGroup, setNewGroup] = useState<SkillGroupName>("Övriga färdigheter")
+
+  const dynamicGroupOptions: { value: SkillGroupName; label: string }[] = [
+    { value: "Övriga färdigheter", label: "Övriga färdigheter" },
+    { value: "Mystikfärdigheter", label: "Mystikfärdigheter (aspekt)" },
+    { value: "Stridsfärdigheter", label: "Stridsfärdigheter (vapen)" },
+  ]
+
+  const addSkill = () => {
+    if (newName.trim()) {
+      dispatch({
+        type: "ADD_DYNAMIC_SKILL",
+        skill: {
+          name: newName.trim(),
+          group: newGroup,
+          baseValue: 0,
+          spentUnits: 0,
+          status: null,
+          dynamicType: newType,
+        },
+      })
+      setNewName("")
+    }
+  }
+
+  const övrigaSkills = state.dynamicSkills.filter(
+    (s) => s.group === "Övriga färdigheter",
+  )
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium fg-eon-red">
+        Övriga färdigheter (Expertiser, Förmågor, Hantverk, Kännetecken)
+      </h4>
+
+      {övrigaSkills.length > 0 && (
+        <table className="table-condensed w-full text-sm">
+          <thead>
+            <tr>
+              <th className="text-left">Färdighet</th>
+              <th className="text-center w-12">Grund</th>
+              <th className="text-center w-20">Enheter</th>
+              <th className="text-center w-12">Värde</th>
+              <th className="text-center w-16">Tärningar</th>
+              <th className="text-center w-16">Status</th>
+              <th className="w-8"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {övrigaSkills.map((skill) => (
+              <tr key={skill.name}>
+                <td>
+                  {skill.name}
+                  <span className="text-xs text-gray-500 ml-1">
+                    ({skill.dynamicType})
+                  </span>
+                </td>
+                <td className="text-center">{skill.baseValue}</td>
+                <td className="text-center">
+                  {skill.status === "B" ? (
+                    <span className="text-gray-400">—</span>
+                  ) : (
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_SKILL_UNITS",
+                            skillName: skill.name,
+                            units: skill.spentUnits - 1,
+                          })
+                        }
+                        disabled={skill.spentUnits <= 0}
+                      >
+                        -
+                      </button>
+                      <span className="w-6 text-center">
+                        {skill.spentUnits}
+                      </span>
+                      <button
+                        type="button"
+                        className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+                        onClick={() =>
+                          dispatch({
+                            type: "SET_SKILL_UNITS",
+                            skillName: skill.name,
+                            units: skill.spentUnits + 1,
+                          })
+                        }
+                        disabled={
+                          skill.baseValue + skill.spentUnits >= MAX_SKILL_VALUE
+                        }
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+                </td>
+                <td className="text-center font-bold">
+                  {skill.baseValue + skill.spentUnits}
+                </td>
+                <td className="text-center fn-dice">
+                  {skillValueToDice(skill.baseValue + skill.spentUnits)}
+                </td>
+                <td className="text-center">
+                  <select
+                    className="text-xs border rounded px-1 h-6 w-14"
+                    value={skill.status || ""}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "SET_SKILL_STATUS",
+                        skillName: skill.name,
+                        status: (e.target.value || null) as SkillStatus,
+                      })
+                    }
+                  >
+                    <option value="">—</option>
+                    <option value="T">T</option>
+                    <option value="I">I</option>
+                    <option value="B">B</option>
+                  </select>
+                </td>
+                <td>
+                  <MinusButton
+                    onClick={() =>
+                      dispatch({
+                        type: "REMOVE_DYNAMIC_SKILL",
+                        skillName: skill.name,
+                      })
+                    }
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          className="flex-1"
+          placeholder="Namn (t.ex. Heraldik, Smed, Romantiker...)"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addSkill()
+          }}
+        />
+        <select
+          className="border rounded px-1 h-8 text-sm"
+          value={newType}
+          onChange={(e) => setNewType(e.target.value as DynamicSkillType)}
+        >
+          {Object.entries(DYNAMIC_SKILL_TYPES).map(([code, info]) => (
+            <option key={code} value={code}>
+              {info.label}
+            </option>
+          ))}
+        </select>
+        <select
+          className="border rounded px-1 h-8 text-sm"
+          value={newGroup}
+          onChange={(e) => setNewGroup(e.target.value as SkillGroupName)}
+        >
+          {dynamicGroupOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <PlusButton onClick={addSkill} />
+      </div>
+    </div>
+  )
+}
+
+function DesensitizationSection() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium fg-eon-red">Avtrubbning</h4>
+      <div className="flex gap-6">
+        {DESENSITIZATION_CATEGORIES.map((cat) => (
+          <div key={cat} className="flex items-center gap-2">
+            <label className="text-sm">{cat}:</label>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+                onClick={() =>
+                  dispatch({
+                    type: "SET_DESENSITIZATION",
+                    category: cat,
+                    value: state.desensitization[cat] - 1,
+                  })
+                }
+                disabled={state.desensitization[cat] <= 0}
+              >
+                -
+              </button>
+              <span className="w-6 text-center font-bold">
+                {state.desensitization[cat]}
+              </span>
+              <button
+                type="button"
+                className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+                onClick={() =>
+                  dispatch({
+                    type: "SET_DESENSITIZATION",
+                    category: cat,
+                    value: state.desensitization[cat] + 1,
+                  })
+                }
+              >
+                +
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function LanguagesSection() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+  const [newName, setNewName] = useState("")
+  const [newType, setNewType] = useState<"tal" | "skrift">("tal")
+
+  const addLanguage = () => {
+    if (newName.trim()) {
+      dispatch({
+        type: "ADD_LANGUAGE",
+        language: { name: newName.trim(), type: newType },
+      })
+      setNewName("")
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium fg-eon-red">Språk</h4>
+      {state.languages.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {state.languages.map((lang, i) => (
+            <span
+              key={i}
+              className="text-sm px-2 py-1 bg-gray-100 rounded border flex items-center gap-1"
+            >
+              {lang.name} ({lang.type})
+              <MinusButton onClick={() => dispatch({ type: "REMOVE_LANGUAGE", index: i })} />
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          className="flex-1"
+          placeholder="Språknamn"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addLanguage()
+          }}
+        />
+        <select
+          className="border rounded px-1 h-8 text-sm"
+          value={newType}
+          onChange={(e) => setNewType(e.target.value as "tal" | "skrift")}
+        >
+          <option value="tal">Talspråk</option>
+          <option value="skrift">Skriftspråk</option>
+        </select>
+        <PlusButton onClick={addLanguage} />
+      </div>
+    </div>
+  )
+}
+
+function MysteriesSection() {
+  const state = useEon5State()
+  const dispatch = useEon5Dispatch()
+  const [newName, setNewName] = useState("")
+
+  const addMystery = () => {
+    if (newName.trim()) {
+      dispatch({
+        type: "ADD_MYSTERY",
+        mystery: { name: newName.trim() },
+      })
+      setNewName("")
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <h4 className="text-sm font-medium fg-eon-red">Mysterier</h4>
+      {state.mysteries.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {state.mysteries.map((m, i) => (
+            <span
+              key={i}
+              className="text-sm px-2 py-1 bg-gray-100 rounded border flex items-center gap-1"
+            >
+              {m.name}
+              <MinusButton onClick={() => dispatch({ type: "REMOVE_MYSTERY", index: i })} />
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <input
+          type="text"
+          className="flex-1"
+          placeholder="Mysterienamn"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addMystery()
+          }}
+        />
+        <PlusButton onClick={addMystery} />
+      </div>
+    </div>
+  )
+}
