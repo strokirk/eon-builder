@@ -16,7 +16,7 @@ import {
   getChunks,
   getPreSpend,
 } from "./eon5-utils"
-import type { Eon5AttributeState } from "./eon5-types"
+import type { Eon5Attribute } from "./eon5-types"
 
 // Core signals
 export const distributionModel = signal<DistributionModel | null>(null)
@@ -25,13 +25,13 @@ export const grundrustningMod = signal(0)
 export const grundskadaMod = signal(0)
 
 // Attributes map
-export const attributes = signal<Record<AttributeName, Eon5AttributeState>>(
+export const attributes = signal<Record<AttributeName, Eon5Attribute>>(
   ATTRIBUTES.reduce(
     (acc, name) => ({
       ...acc,
       [name]: { base: 8, modifiers: 0, assignedChunk: null },
     }),
-    {} as Record<AttributeName, Eon5AttributeState>,
+    {} as Record<AttributeName, Eon5Attribute>,
   ),
 )
 
