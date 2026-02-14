@@ -1,4 +1,4 @@
-@use "tailwindcss";
+@import "tailwindcss";
 @source "../index.html";
 @source "./**/*.{html,ts,tsx}";
 
@@ -87,10 +87,20 @@ body {
   color: var(--eon-red);
 }
 
-@for $var from 1 to 5 {
-  .bg-beige-#{$var * 100} {
-    background-color: var(--beige-#{$var * 100});
-  }
+.bg-beige-100 {
+  background-color: var(--beige-100);
+}
+
+.bg-beige-200 {
+  background-color: var(--beige-200);
+}
+
+.bg-beige-300 {
+  background-color: var(--beige-300);
+}
+
+.bg-beige-400 {
+  background-color: var(--beige-400);
 }
 
 h1,
@@ -160,20 +170,16 @@ button:disabled {
   opacity: 0.6;
 }
 
-.table-condensed {
-  th,
-  td {
-    padding: 0.25rem;
-  }
+.table-condensed th,
+.table-condensed td {
+  padding: 0.25rem;
 }
 
-.dice {
-  input {
-    height: 2rem;
-    margin-left: 0.25rem;
-    margin-right: 0.25rem;
-    width: 2rem;
-  }
+.dice input {
+  height: 2rem;
+  margin-left: 0.25rem;
+  margin-right: 0.25rem;
+  width: 2rem;
 }
 
 .button-group {
@@ -371,22 +377,22 @@ input::-webkit-inner-spin-button {
   border-spacing: 0;
   min-width: 640px;
   width: 100%;
+}
 
-  th,
-  td {
-    border-bottom: 1px solid rgba(189, 162, 127, 0.35);
-    padding: 0.4rem 0.45rem;
-    vertical-align: middle;
-  }
+.table-eon th,
+.table-eon td {
+  border-bottom: 1px solid rgba(189, 162, 127, 0.35);
+  padding: 0.4rem 0.45rem;
+  vertical-align: middle;
+}
 
-  thead th {
-    background: #f7efe1;
-    color: #4a2f17;
-    font-weight: 700;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-  }
+.table-eon thead th {
+  background: #f7efe1;
+  color: #4a2f17;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .table-eon--dense th,
