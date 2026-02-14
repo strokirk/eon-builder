@@ -11,13 +11,15 @@ import {
   type AttributeName,
   type SkillStatus,
 } from "./eon5-data"
-import type { Eon5CharState, Eon5Skill, GroupUnitAllocation, LanguageEntry, MysteryEntry, SpecificUnitAllocation } from "./eon5-types"
-import {
-  createInitialState,
-  getChunks,
-  getFinalAttributeValue,
-  getWisdomEntry,
-} from "./eon5-utils"
+import type {
+  Eon5CharState,
+  Eon5Skill,
+  GroupUnitAllocation,
+  LanguageEntry,
+  MysteryEntry,
+  SpecificUnitAllocation,
+} from "./eon5-types"
+import { createInitialState, getChunks, getFinalAttributeValue, getWisdomEntry } from "./eon5-utils"
 
 export const eon5State = signal<Eon5CharState>(createInitialState())
 

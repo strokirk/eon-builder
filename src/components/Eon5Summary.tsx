@@ -43,20 +43,20 @@ export function Eon5Summary() {
 
       {/* Validation */}
       {errors.length > 0 && (
-        <div className="p-3 border border-red-300 rounded bg-red-50 space-y-1">
-          <h4 className="text-sm font-medium text-red-800">Regelbrott:</h4>
+        <div className="status-banner status-banner--error space-y-1">
+          <h4 className="text-sm font-medium">Regelbrott:</h4>
           {errors.map((e, i) => (
-            <p key={i} className="text-sm text-red-700">
+            <p key={i} className="text-sm">
               {e.field}: {e.message}
             </p>
           ))}
         </div>
       )}
       {warnings.length > 0 && (
-        <div className="p-3 border border-amber-300 rounded bg-amber-50 space-y-1">
-          <h4 className="text-sm font-medium text-amber-800">Varningar:</h4>
+        <div className="status-banner status-banner--warn space-y-1">
+          <h4 className="text-sm font-medium">Varningar:</h4>
           {warnings.map((e, i) => (
-            <p key={i} className="text-sm text-amber-700">
+            <p key={i} className="text-sm">
               {e.field}: {e.message}
             </p>
           ))}
@@ -66,31 +66,33 @@ export function Eon5Summary() {
       {/* Attributes */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium fg-eon-red">Attribut</h4>
-        <table className="table-condensed text-sm">
-          <thead>
-            <tr>
-              <th className="text-left">Attribut</th>
-              <th className="text-center">Värde</th>
-              <th className="text-center">Tärningar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {ATTRIBUTES.map((attrName) => {
-              const attr = state.attributes[attrName]
-              const finalVal = getFinalAttributeValue(attr)
-              const isVisdom = attrName === "Visdom"
-              return (
-                <tr key={attrName}>
-                  <td className="font-medium">{attrName}</td>
-                  <td className="text-center">{finalVal}</td>
-                  <td className="text-center fn-dice">
-                    {isVisdom ? "—" : attributeToDice(finalVal)}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+        <div className="table-wrap">
+          <table className="table-eon table-eon--dense text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">Attribut</th>
+                <th className="text-center">Värde</th>
+                <th className="text-center">Tärningar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {ATTRIBUTES.map((attrName) => {
+                const attr = state.attributes[attrName]
+                const finalVal = getFinalAttributeValue(attr)
+                const isVisdom = attrName === "Visdom"
+                return (
+                  <tr key={attrName}>
+                    <td className="font-medium">{attrName}</td>
+                    <td className="text-center">{finalVal}</td>
+                    <td className="text-center fn-dice">
+                      {isVisdom ? "—" : attributeToDice(finalVal)}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Derived values */}
@@ -144,48 +146,52 @@ export function Eon5Summary() {
         return (
           <div key={groupName} className="space-y-1">
             <h4 className="text-sm font-medium fg-eon-red">{groupName}</h4>
-            <table className="table-condensed text-sm w-full">
-              <thead>
-                <tr>
-                  <th className="text-left">Färdighet</th>
-                  <th className="text-center">Värde</th>
-                  <th className="text-center">Tärningar</th>
-                  <th className="text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeSkills.map((skill) => {
-                  const totalValue = skill.baseValue + skill.spentUnits
-                  return (
-                    <tr key={skill.name}>
-                      <td>
-                        {skill.name}
-                        {skill.dynamicType && (
-                          <span className="text-xs text-gray-500 ml-1">({skill.dynamicType})</span>
-                        )}
-                      </td>
-                      <td className="text-center">{totalValue}</td>
-                      <td className="text-center fn-dice">{skillValueToDice(totalValue)}</td>
-                      <td className="text-center">
-                        {skill.status && (
-                          <span
-                            className={`text-xs px-1 rounded ${
-                              skill.status === "T"
-                                ? "bg-blue-100 text-blue-800"
-                                : skill.status === "I"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-gray-200 text-gray-800"
-                            }`}
-                          >
-                            {SKILL_STATUS_INFO[skill.status].name}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            <div className="table-wrap">
+              <table className="table-eon table-eon--dense text-sm">
+                <thead>
+                  <tr>
+                    <th className="text-left">Färdighet</th>
+                    <th className="text-center">Värde</th>
+                    <th className="text-center">Tärningar</th>
+                    <th className="text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activeSkills.map((skill) => {
+                    const totalValue = skill.baseValue + skill.spentUnits
+                    return (
+                      <tr key={skill.name}>
+                        <td>
+                          {skill.name}
+                          {skill.dynamicType && (
+                            <span className="text-xs text-gray-500 ml-1">
+                              ({skill.dynamicType})
+                            </span>
+                          )}
+                        </td>
+                        <td className="text-center">{totalValue}</td>
+                        <td className="text-center fn-dice">{skillValueToDice(totalValue)}</td>
+                        <td className="text-center">
+                          {skill.status && (
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                skill.status === "T"
+                                  ? "status-banner--info"
+                                  : skill.status === "I"
+                                    ? "status-banner--error"
+                                    : "status-banner--warn"
+                              }`}
+                            >
+                              {SKILL_STATUS_INFO[skill.status].name}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )
       })}

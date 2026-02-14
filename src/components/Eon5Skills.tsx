@@ -61,7 +61,15 @@ export function Eon5Skills() {
       <FreeUnitsButton />
 
       {/* Budget bar */}
-      <div className="text-sm p-2 border rounded bg-gray-50">
+      <div
+        className={`status-banner ${
+          remaining > 0
+            ? "status-banner--warn"
+            : remaining < 0
+              ? "status-banner--error"
+              : "status-banner--ok"
+        }`}
+      >
         <span className="font-medium">Enhetsbudget:</span> <span>{totalSpent}</span> /{" "}
         <span>{totalAvailable}</span> spenderade
         {remaining > 0 && (
@@ -117,7 +125,7 @@ function UnitPoolSummary() {
   const wisdomEntry = hasWisdom ? getWisdomEntry(wisdomFinal) : null
 
   return (
-    <div className="text-sm p-3 border rounded bg-gray-50 space-y-1">
+    <div className="status-banner status-banner--info space-y-1">
       <h4 className="font-medium">Enhetssammanställning</h4>
       {specificUsage.length > 0 && (
         <div>
@@ -190,16 +198,26 @@ function SpecificUnitsInput() {
         </div>
       ))}
       <div className="flex items-center gap-2">
+        <label className="sr-only" htmlFor="specific-unit-skill-name">
+          Färdighetsnamn
+        </label>
         <input
+          id="specific-unit-skill-name"
+          name="specific-unit-skill-name"
           type="text"
-          className="flex-1"
+          className="input-base flex-1"
           placeholder="Färdighetsnamn"
           value={newSkill}
           onChange={(e) => setNewSkill(e.target.value)}
         />
+        <label className="sr-only" htmlFor="specific-unit-count">
+          Antal enheter
+        </label>
         <input
+          id="specific-unit-count"
+          name="specific-unit-count"
           type="number"
-          className="w-14 text-center"
+          className="input-base input-compact w-14 text-center"
           min={1}
           value={newUnits || ""}
           onChange={(e) => setNewUnits(parseInt(e.target.value) || 0)}
@@ -269,7 +287,7 @@ function GroupUnitsButtons() {
               key={type}
               type="button"
               onClick={() => openDialog(type)}
-              className="px-3 py-1.5 border rounded bg-white hover:bg-gray-50 text-sm flex items-center gap-2"
+              className="btn btn--secondary text-sm flex items-center gap-2"
             >
               <span className="text-green-600 font-bold">+</span>
               <span>{type}</span>
@@ -308,10 +326,14 @@ function GroupUnitsButtons() {
           <div className="space-y-4">
             <h5 className="font-medium">{dialogOpen}</h5>
             <div className="space-y-2">
-              <label className="text-sm">Antal enheter att lägga till:</label>
+              <label className="text-sm" htmlFor="group-unit-dialog-input">
+                Antal enheter att lägga till:
+              </label>
               <input
+                id="group-unit-dialog-input"
+                name="group-unit-dialog-input"
                 type="number"
-                className="w-full text-center border rounded px-2 py-1"
+                className="input-base w-full text-center"
                 min={1}
                 value={inputValue || ""}
                 onChange={(e) => setInputValue(parseInt(e.target.value) || 0)}
@@ -323,17 +345,13 @@ function GroupUnitsButtons() {
               />
             </div>
             <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={closeDialog}
-                className="px-3 py-1 border rounded hover:bg-gray-100"
-              >
+              <button type="button" onClick={closeDialog} className="btn btn--ghost">
                 Avbryt
               </button>
               <button
                 type="button"
                 onClick={addUnits}
-                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="btn btn--primary"
                 disabled={inputValue <= 0}
               >
                 Lägg till
@@ -390,7 +408,7 @@ function FreeUnitsButton() {
         <button
           type="button"
           onClick={openDialog}
-          className="px-3 py-1.5 border rounded bg-white hover:bg-gray-50 text-sm flex items-center gap-2"
+          className="btn btn--secondary text-sm flex items-center gap-2"
         >
           <span className="text-green-600 font-bold">+</span>
           <span>Valfria enheter</span>
@@ -403,14 +421,14 @@ function FreeUnitsButton() {
             <button
               type="button"
               onClick={decreaseUnits}
-              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+              className="btn btn--ghost w-6 h-6 p-0 text-xs"
             >
               -
             </button>
             <button
               type="button"
               onClick={clearUnits}
-              className="px-2 py-1 text-xs border rounded hover:bg-gray-100"
+              className="btn btn--ghost px-2 py-0.5 text-xs"
               title="Rensa alla"
             >
               ✕
@@ -433,10 +451,14 @@ function FreeUnitsButton() {
           <div className="space-y-4">
             <h5 className="font-medium">Valfria enheter</h5>
             <div className="space-y-2">
-              <label className="text-sm">Antal enheter att lägga till:</label>
+              <label className="text-sm" htmlFor="free-unit-dialog-input">
+                Antal enheter att lägga till:
+              </label>
               <input
+                id="free-unit-dialog-input"
+                name="free-unit-dialog-input"
                 type="number"
-                className="w-full text-center border rounded px-2 py-1"
+                className="input-base w-full text-center"
                 min={1}
                 value={inputValue || ""}
                 onChange={(e) => setInputValue(parseInt(e.target.value) || 0)}
@@ -448,17 +470,13 @@ function FreeUnitsButton() {
               />
             </div>
             <div className="flex gap-2 justify-end">
-              <button
-                type="button"
-                onClick={closeDialog}
-                className="px-3 py-1 border rounded hover:bg-gray-100"
-              >
+              <button type="button" onClick={closeDialog} className="btn btn--ghost">
                 Avbryt
               </button>
               <button
                 type="button"
                 onClick={addUnits}
-                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="btn btn--primary"
                 disabled={inputValue <= 0}
               >
                 Lägg till
@@ -489,23 +507,25 @@ function SkillGroupSection({ title, group }: { title: string; group: SkillGroupN
   return (
     <div className="space-y-1">
       <h4 className="text-sm font-medium fg-eon-red">{title}</h4>
-      <table className="table-condensed w-full text-sm">
-        <thead>
-          <tr>
-            <th className="text-left">Färdighet</th>
-            <th className="text-center w-12">Grund</th>
-            <th className="text-center w-20">Enheter</th>
-            <th className="text-center w-12">Värde</th>
-            <th className="text-center w-16">Tärningar</th>
-            <th className="text-center w-16">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {skills.map((skill) => (
-            <SkillRow key={skill.name} skill={skill} />
-          ))}
-        </tbody>
-      </table>
+      <div className="table-wrap">
+        <table className="table-eon table-eon--dense w-full text-sm">
+          <thead>
+            <tr>
+              <th className="text-left">Färdighet</th>
+              <th className="text-center w-12">Grund</th>
+              <th className="text-center w-20">Enheter</th>
+              <th className="text-center w-12">Värde</th>
+              <th className="text-center w-16">Tärningar</th>
+              <th className="text-center w-16">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {skills.map((skill) => (
+              <SkillRow key={skill.name} skill={skill} />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }
@@ -513,6 +533,7 @@ function SkillGroupSection({ title, group }: { title: string; group: SkillGroupN
 function SkillRow({ skill }: { skill: Eon5Skill }) {
   const [showBlockedHint, setShowBlockedHint] = useState(false)
   const totalValue = skill.baseValue + skill.spentUnits
+  const statusId = `skill-status-${skill.name.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`
   const maxForStatus =
     skill.status && skill.status in SKILL_STATUS_INFO
       ? SKILL_STATUS_INFO[skill.status].maxValue
@@ -549,7 +570,7 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
           <div className="flex items-center justify-center gap-1">
             <button
               type="button"
-              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+              className="btn btn--ghost w-6 h-6 p-0 text-xs"
               onClick={() => setSkillUnits(skill.name, skill.spentUnits - 1)}
               disabled={skill.spentUnits <= 0}
             >
@@ -558,7 +579,7 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
             <span className="w-6 text-center">{skill.spentUnits}</span>
             <button
               type="button"
-              className={`w-6 h-6 border rounded text-xs hover:bg-gray-100 ${
+              className={`btn btn--ghost w-6 h-6 p-0 text-xs ${
                 blockedByBudget ? "opacity-45" : ""
               }`}
               onClick={handleIncrease}
@@ -580,8 +601,14 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
       </td>
       <td className="text-center fn-dice">{skillValueToDice(totalValue)}</td>
       <td className="text-center">
+        <label className="sr-only" htmlFor={statusId}>
+          {skill.name} status
+        </label>
         <select
-          className="text-xs border rounded px-1 h-6 w-14"
+          id={statusId}
+          name={statusId}
+          aria-label={`${skill.name} status`}
+          className="input-base input-compact text-xs w-14"
           value={skill.status || ""}
           onChange={(e) => setSkillStatus(skill.name, (e.target.value || null) as SkillStatus)}
         >
@@ -630,30 +657,37 @@ function DynamicSkillsSection() {
       </h4>
 
       {övrigaSkills.length > 0 && (
-        <table className="table-condensed w-full text-sm">
-          <thead>
-            <tr>
-              <th className="text-left">Färdighet</th>
-              <th className="text-center w-12">Grund</th>
-              <th className="text-center w-20">Enheter</th>
-              <th className="text-center w-12">Värde</th>
-              <th className="text-center w-16">Tärningar</th>
-              <th className="text-center w-16">Status</th>
-              <th className="w-8"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {övrigaSkills.map((skill) => (
-              <DynamicSkillRow key={skill.name} skill={skill} />
-            ))}
-          </tbody>
-        </table>
+        <div className="table-wrap">
+          <table className="table-eon table-eon--dense w-full text-sm">
+            <thead>
+              <tr>
+                <th className="text-left">Färdighet</th>
+                <th className="text-center w-12">Grund</th>
+                <th className="text-center w-20">Enheter</th>
+                <th className="text-center w-12">Värde</th>
+                <th className="text-center w-16">Tärningar</th>
+                <th className="text-center w-16">Status</th>
+                <th className="w-8"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {övrigaSkills.map((skill) => (
+                <DynamicSkillRow key={skill.name} skill={skill} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <div className="flex items-center gap-2">
+        <label className="sr-only" htmlFor="dynamic-skill-name">
+          Dynamiskt färdighetsnamn
+        </label>
         <input
+          id="dynamic-skill-name"
+          name="dynamic-skill-name"
           type="text"
-          className="flex-1"
+          className="input-base flex-1"
           placeholder="Namn (t.ex. Heraldik, Smed, Romantiker...)"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
@@ -661,8 +695,13 @@ function DynamicSkillsSection() {
             if (e.key === "Enter") addSkill()
           }}
         />
+        <label className="sr-only" htmlFor="dynamic-skill-type">
+          Dynamisk färdighetstyp
+        </label>
         <select
-          className="border rounded px-1 h-8 text-sm"
+          id="dynamic-skill-type"
+          name="dynamic-skill-type"
+          className="input-base text-sm"
           value={newType}
           onChange={(e) => setNewType(e.target.value as DynamicSkillType)}
         >
@@ -672,8 +711,13 @@ function DynamicSkillsSection() {
             </option>
           ))}
         </select>
+        <label className="sr-only" htmlFor="dynamic-skill-group">
+          Dynamisk färdighetsgrupp
+        </label>
         <select
-          className="border rounded px-1 h-8 text-sm"
+          id="dynamic-skill-group"
+          name="dynamic-skill-group"
+          className="input-base text-sm"
           value={newGroup}
           onChange={(e) => setNewGroup(e.target.value as SkillGroupName)}
         >
@@ -692,6 +736,7 @@ function DynamicSkillsSection() {
 function DynamicSkillRow({ skill }: { skill: Eon5Skill }) {
   const [showBlockedHint, setShowBlockedHint] = useState(false)
   const totalValue = skill.baseValue + skill.spentUnits
+  const statusId = `dynamic-skill-status-${skill.name.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`
   const canIncrease = canIncreaseSkillUnits(skill.name)
   const blockedByBudget = !canIncrease && totalValue < MAX_SKILL_VALUE && skill.status !== "B"
 
@@ -719,7 +764,7 @@ function DynamicSkillRow({ skill }: { skill: Eon5Skill }) {
           <div className="flex items-center justify-center gap-1">
             <button
               type="button"
-              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+              className="btn btn--ghost w-6 h-6 p-0 text-xs"
               onClick={() => setSkillUnits(skill.name, skill.spentUnits - 1)}
               disabled={skill.spentUnits <= 0}
             >
@@ -728,7 +773,7 @@ function DynamicSkillRow({ skill }: { skill: Eon5Skill }) {
             <span className="w-6 text-center">{skill.spentUnits}</span>
             <button
               type="button"
-              className={`w-6 h-6 border rounded text-xs hover:bg-gray-100 ${
+              className={`btn btn--ghost w-6 h-6 p-0 text-xs ${
                 blockedByBudget ? "opacity-45" : ""
               }`}
               onClick={handleIncrease}
@@ -745,10 +790,18 @@ function DynamicSkillRow({ skill }: { skill: Eon5Skill }) {
         )}
       </td>
       <td className="text-center font-bold">{skill.baseValue + skill.spentUnits}</td>
-      <td className="text-center fn-dice">{skillValueToDice(skill.baseValue + skill.spentUnits)}</td>
+      <td className="text-center fn-dice">
+        {skillValueToDice(skill.baseValue + skill.spentUnits)}
+      </td>
       <td className="text-center">
+        <label className="sr-only" htmlFor={statusId}>
+          {skill.name} dynamisk status
+        </label>
         <select
-          className="text-xs border rounded px-1 h-6 w-14"
+          id={statusId}
+          name={statusId}
+          aria-label={`${skill.name} dynamisk status`}
+          className="input-base input-compact text-xs w-14"
           value={skill.status || ""}
           onChange={(e) => setSkillStatus(skill.name, (e.target.value || null) as SkillStatus)}
         >
@@ -829,9 +882,14 @@ function LanguagesSection() {
         </div>
       )}
       <div className="flex items-center gap-2">
+        <label className="sr-only" htmlFor="language-name">
+          Språknamn
+        </label>
         <input
+          id="language-name"
+          name="language-name"
           type="text"
-          className="flex-1"
+          className="input-base flex-1"
           placeholder="Språknamn"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
@@ -839,8 +897,13 @@ function LanguagesSection() {
             if (e.key === "Enter") handleAddLanguage()
           }}
         />
+        <label className="sr-only" htmlFor="language-type">
+          Språktyp
+        </label>
         <select
-          className="border rounded px-1 h-8 text-sm"
+          id="language-type"
+          name="language-type"
+          className="input-base text-sm"
           value={newType}
           onChange={(e) => setNewType(e.target.value as "tal" | "skrift")}
         >
@@ -881,9 +944,14 @@ function MysteriesSection() {
         </div>
       )}
       <div className="flex items-center gap-2">
+        <label className="sr-only" htmlFor="mystery-name">
+          Mysterienamn
+        </label>
         <input
+          id="mystery-name"
+          name="mystery-name"
           type="text"
-          className="flex-1"
+          className="input-base flex-1"
           placeholder="Mysterienamn"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}

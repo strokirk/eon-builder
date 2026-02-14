@@ -11,7 +11,7 @@ export function Eon5WisdomPanel() {
 
   if (!hasWisdom && wisdomAttr.base === 0) {
     return (
-      <div className="p-3 border rounded bg-gray-50 text-gray-500">
+      <div className="panel text-gray-500">
         <h4 className="text-sm font-medium">Visdom-panel</h4>
         <p className="text-sm">Tilldela Visdom-attributet först.</p>
       </div>
@@ -19,7 +19,7 @@ export function Eon5WisdomPanel() {
   }
 
   return (
-    <div className="space-y-3 p-3 border rounded bg-gray-50">
+    <div className="panel space-y-3 bg-gray-50">
       <h4 className="text-sm font-medium">Visdom-panel (Visdom: {wisdomFinal})</h4>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
@@ -97,9 +97,9 @@ function IncompetentSelector({ required, selected }: { required: number; selecte
               type="button"
               className={`text-xs px-2 py-1 rounded border ${
                 isSelected
-                  ? "bg-red-100 border-red-400 text-red-800"
+                  ? "bg-red-100 border-red-500 text-red-900"
                   : canSelect
-                    ? "bg-white border-gray-300 hover:bg-gray-100"
+                    ? "bg-white border-[var(--color-border)] hover:bg-[var(--color-surface-muted)]"
                     : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
               }`}
               disabled={!canSelect}
@@ -135,9 +135,9 @@ function BaseValueSelector({ required, selected }: { required: number; selected:
               type="button"
               className={`text-xs px-2 py-1 rounded border ${
                 isSelected
-                  ? "bg-green-100 border-green-400 text-green-800"
+                  ? "bg-green-100 border-green-500 text-green-900"
                   : canSelect
-                    ? "bg-white border-gray-300 hover:bg-gray-100"
+                    ? "bg-white border-[var(--color-border)] hover:bg-[var(--color-surface-muted)]"
                     : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
               }`}
               disabled={!canSelect}

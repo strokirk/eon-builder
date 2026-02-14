@@ -1,0 +1,4 @@
+interface:
+  display_name: "Medieval UI Designer"
+  short_description: "Clean medieval-inspired product UI design"
+  default_prompt: "Use $medieval-ui-designer to design or refine this interface with strong hierarchy, clean UX patterns, and a medieval-inspired visual system."

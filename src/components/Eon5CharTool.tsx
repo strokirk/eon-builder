@@ -9,6 +9,8 @@ import { Eon5Skills } from "./Eon5Skills"
 import { Eon5Summary } from "./Eon5Summary"
 import { Eon5WisdomPanel } from "./Eon5WisdomPanel"
 import { TogglableSection } from "./TogglableSection"
+import { getTotalAttributePoints, validateAttributes, validateSkills } from "../eon5-utils"
+import { ATTRIBUTES } from "../eon5-data"
 
 const STORAGE_KEY = "eon5CharTool"
 
@@ -23,6 +25,7 @@ function getBrowserStorage(): Storage | null {
 
 export function Eon5CharTool() {
   const hydrationDoneRef = useRef(false)
+  const state = eon5State.value
 
   useEffect(() => {
     const storage = getBrowserStorage()
@@ -64,35 +67,52 @@ export function Eon5CharTool() {
     resetEon5State()
   }
 
-  return (
-    <div className="p-8 space-y-6 max-w-4xl">
-      <h1>Eon 5 — Attribut & Färdigheter</h1>
+  const totalPoints = getTotalAttributePoints(state.extraAttributePoints)
+  const usedPoints =
+    state.distributionModel === "Fria poäng"
+      ? ATTRIBUTES.reduce((sum, attr) => sum + (state.attributes[attr].assignedChunk ?? 0), 0)
+      : 0
+  const remainingPoints = totalPoints - usedPoints
+  const totalWarnings = validateAttributes(state).length + validateSkills(state).length
 
-      <div className="flex gap-2">
-        <button
-          className="hover:bg-gray-300 py-2 px-4 rounded bg-gray-100 border shadow-sm text-sm"
-          onClick={clearData}
-          type="button"
-        >
+  return (
+    <div className="panel space-y-4 max-w-5xl">
+      <div className="space-y-3">
+        <h1>Eon 5 — Attribut & Färdigheter</h1>
+        <div className="status-banner status-banner--info">
+          <strong>Snabbstatus:</strong>{" "}
+          {state.distributionModel === "Fria poäng"
+            ? `Återstående attributpoäng ${remainingPoints} / ${totalPoints}. `
+            : "Välj modell och fördela attribut. "}
+          {totalWarnings > 0 ? `${totalWarnings} regelvarningar finns.` : "Inga regelvarningar."}
+        </div>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        <button className="btn btn--danger" onClick={clearData} type="button">
           Rensa sparad data
         </button>
       </div>
 
       {/* Step content */}
-      <div className="space-y-6">
-        <TogglableSection name="1. Attribut" isCollapsed={false}>
+      <div className="space-y-4">
+        <TogglableSection id="eon5-step-1" name="1. Attribut" isCollapsed={false}>
           <Eon5Attributes />
         </TogglableSection>
 
-        <TogglableSection name="2. Visdom & Kunskapsfärdigheter" isCollapsed={true}>
+        <TogglableSection
+          id="eon5-step-2"
+          name="2. Visdom & Kunskapsfärdigheter"
+          isCollapsed={true}
+        >
           <Eon5WisdomPanel />
         </TogglableSection>
 
-        <TogglableSection name="3. Färdigheter & Enheter" isCollapsed={true}>
+        <TogglableSection id="eon5-step-3" name="3. Färdigheter & Enheter" isCollapsed={true}>
           <Eon5Skills />
         </TogglableSection>
 
-        <TogglableSection name="4. Sammanfattning" isCollapsed={true}>
+        <TogglableSection id="eon5-step-4" name="4. Sammanfattning" isCollapsed={true}>
           <Eon5Summary />
         </TogglableSection>
       </div>

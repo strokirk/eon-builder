@@ -7,26 +7,22 @@ export function App() {
   const [activeTab, setActiveTab] = useState<"eon4" | "eon5">("eon5")
 
   return (
-    <div>
-      <div className="flex border-b border-gray-300 px-8 pt-4 gap-1">
+    <div className="app-shell">
+      <div className="tab-strip" role="tablist" aria-label="Version">
         <button
           type="button"
-          className={`py-2 px-6 rounded-t border border-b-0 text-sm font-medium ${
-            activeTab === "eon5"
-              ? "bg-white border-gray-300 fg-eon-red"
-              : "bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200"
-          }`}
+          role="tab"
+          aria-selected={activeTab === "eon5"}
+          className={`tab-button ${activeTab === "eon5" ? "is-active" : ""}`}
           onClick={() => setActiveTab("eon5")}
         >
           Eon 5 — Attribut & Färdigheter
         </button>
         <button
           type="button"
-          className={`py-2 px-6 rounded-t border border-b-0 text-sm font-medium ${
-            activeTab === "eon4"
-              ? "bg-white border-gray-300 fg-eon-red"
-              : "bg-gray-100 text-gray-500 hover:bg-gray-200 border-gray-200"
-          }`}
+          role="tab"
+          aria-selected={activeTab === "eon4"}
+          className={`tab-button ${activeTab === "eon4" ? "is-active" : ""}`}
           onClick={() => setActiveTab("eon4")}
         >
           Eon 4 — Karaktärsskapare

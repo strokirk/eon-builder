@@ -25,11 +25,11 @@ export default function EonChar() {
 
   return (
     <GlobalData.Provider value={[char, setChar]}>
-      <div className="p-8 space-y-6">
+      <div className="panel space-y-4">
         <h1>Eon karaktärsskapare</h1>
-        <div className="space-x-4">
+        <div className="flex flex-wrap gap-2">
           <button
-            className="hover:bg-gray-300 py-2 px-4 rounded bg-gray-100 border shadow-sm"
+            className="btn btn--secondary"
             onClick={() => {
               exportChar()
             }}
@@ -38,7 +38,7 @@ export default function EonChar() {
             Exportera
           </button>
           <button
-            className="hover:bg-gray-300 py-2 px-4 rounded bg-gray-100 border shadow-sm"
+            className="btn btn--danger"
             onClick={() => {
               if (!window.confirm("Are you sure?")) return
               clearChar()
@@ -49,40 +49,40 @@ export default function EonChar() {
           </button>
         </div>
         {exportData.length !== 0 && <pre className="">{exportData}</pre>}
-        <TogglableSection name="Bakgrund">
+        <TogglableSection id="eon4-background" name="Bakgrund">
           <EonBackground />
         </TogglableSection>
-        <TogglableSection name="Miljö">
+        <TogglableSection id="eon4-environment" name="Miljö">
           <EonChoice type="environment" />
         </TogglableSection>
-        <TogglableSection name="Arketyp">
+        <TogglableSection id="eon4-archetype" name="Arketyp">
           <EonChoice type="archetype" />
         </TogglableSection>
-        <TogglableSection name="Folkslag">
+        <TogglableSection id="eon4-tribe" name="Folkslag">
           <EonChoice type="tribe" />
         </TogglableSection>
-        <TogglableSection name="Händelser">
+        <TogglableSection id="eon4-events" name="Händelser">
           <EonEvents />
         </TogglableSection>
-        <TogglableSection name="Färdigheter">
+        <TogglableSection id="eon4-skills" name="Färdigheter">
           <EonSkillList />
         </TogglableSection>
-        <TogglableSection name="Grundattribut">
+        <TogglableSection id="eon4-primary-attributes" name="Grundattribut">
           <AttributeGroup attributes={ATTRIBUTES} />
         </TogglableSection>
-        <TogglableSection name="Härledda attribut">
+        <TogglableSection id="eon4-secondary-attributes" name="Härledda attribut">
           <SecondaryAttributeGroup />
         </TogglableSection>
-        <TogglableSection name="Avtrubbning">
+        <TogglableSection id="eon4-trauma" name="Avtrubbning">
           <EonMentalTrauma />
         </TogglableSection>
-        <TogglableSection name="Kontakter">
+        <TogglableSection id="eon4-contacts" name="Kontakter">
           <EonEntityGroup type="contacts" />
         </TogglableSection>
-        <TogglableSection name="Ägodelar">
+        <TogglableSection id="eon4-possessions" name="Ägodelar">
           <EonEntityGroup type="possessions" />
         </TogglableSection>
-        <TogglableSection name="Övriga anteckningar">
+        <TogglableSection id="eon4-notes" name="Övriga anteckningar">
           <EonEntityGroup type="notes" />
         </TogglableSection>
       </div>
