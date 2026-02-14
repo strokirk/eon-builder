@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { ReactNode, useState } from "react"
 
 export function TogglableSection(props: {
-  children?: JSX.Element | JSX.Element[]
+  children?: ReactNode
   isCollapsed?: boolean
   name: string
 }) {

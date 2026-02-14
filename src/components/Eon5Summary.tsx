@@ -1,4 +1,4 @@
-import { useEon5State } from "../eon5-context"
+import { eon5State } from "../eon5-store"
 import {
   ATTRIBUTES,
   DESENSITIZATION_CATEGORIES,
@@ -18,7 +18,7 @@ import {
 } from "../eon5-utils"
 
 export function Eon5Summary() {
-  const state = useEon5State()
+  const state = eon5State.value
 
   const attrErrors = validateAttributes(state)
   const skillErrors = validateSkills(state)

@@ -6,11 +6,6 @@ import { useCharEffectsSelector } from "../hooks/use-char-effects-selector"
 import { useRows } from "../hooks/use-rows"
 import { Effect, EffectType } from "../types"
 
-export function dropKey(obj: any, key: string) {
-  let { [key]: _, ...rest } = obj
-  return rest
-}
-
 export function EonSkillList() {
   const [char, setChar] = useContext(GlobalData)
   const effects = useCharEffectsSelector()

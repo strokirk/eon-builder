@@ -18,31 +18,20 @@ export function DropdownCombobox({
   onChange?: (changes?: string) => void
 }) {
   const [inputItems, setInputItems] = useState(items)
-  const {
-    getComboboxProps,
-    getInputProps,
-    getItemProps,
-    getMenuProps,
-    highlightedIndex,
-    isOpen,
-    openMenu,
-  } = useCombobox({
-    initialInputValue: value || "",
-    items: inputItems,
-    onInputValueChange: ({ inputValue }) => {
-      onChange?.(inputValue)
-      setInputItems(
-        items.filter((item) =>
-          // @ts-expect-error
-          item.toLowerCase().startsWith(inputValue.toLowerCase()),
-        ),
-      )
-    },
-  })
+  const { getInputProps, getItemProps, getMenuProps, highlightedIndex, isOpen, openMenu } =
+    useCombobox({
+      initialInputValue: value || "",
+      items: inputItems,
+      onInputValueChange: ({ inputValue }) => {
+        onChange?.(inputValue)
+        const normalizedInputValue = (inputValue || "").toLowerCase()
+        setInputItems(items.filter((item) => item.toLowerCase().startsWith(normalizedInputValue)))
+      },
+    })
 
   return (
     <div className="relative flex-1">
-      <div {...getComboboxProps()} className="w-full h-full">
+      <div className="w-full h-full">
         <input
           {...getInputProps({
             className: classNames(className, " w-full h-full px-2"),

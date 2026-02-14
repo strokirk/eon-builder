@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind utilities;
-@tailwind components;
+@import "tailwindcss";
+@source "../index.html";
+@source "./**/*.{html,ts,tsx}";
 
 @font-face {
   font-family: "Vinque";
@@ -56,53 +56,79 @@ h6 {
 }
 
 h1 {
-  @apply text-3xl;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
   margin-bottom: 1rem;
 }
 
 h2 {
-  @apply text-2xl;
+  font-size: 1.5rem;
+  line-height: 2rem;
   margin-bottom: 0.5rem;
   margin-top: 0.75rem;
 }
 
 input {
-  @apply h-8;
+  height: 2rem;
 }
 
 input,
 textarea {
-  @apply border hover:border-gray-300 active:border-gray-300 px-2;
+  border: 1px solid #e5e7eb;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+input:hover,
+input:active,
+textarea:hover,
+textarea:active {
+  border-color: #d1d5db;
 }
 
 .table-condensed {
   th,
   td {
-    @apply p-1;
+    padding: 0.25rem;
   }
 }
 
 .dice {
   input {
-    @apply h-8 w-8 mx-1;
+    height: 2rem;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    width: 2rem;
   }
 }
 
 .button-group {
-  @apply flex;
-
-  @apply fg-eon-red;
+  color: var(--eon-red);
+  display: flex;
 
   > * {
-    @apply p-1 px-2 border border-gray-200 border-r-0 hover:bg-gray-100 active:bg-gray-200;
+    border: 1px solid #e5e7eb;
+    border-right-width: 0;
+    padding: 0.25rem 0.5rem;
+  }
+
+  > *:hover {
+    background-color: #f3f4f6;
+  }
+
+  > *:active {
+    background-color: #e5e7eb;
   }
 
   > *:first-child {
-    @apply rounded-l-lg;
+    border-bottom-left-radius: 0.5rem;
+    border-top-left-radius: 0.5rem;
   }
 
   > *:last-child {
-    @apply rounded-r-lg  border-r;
+    border-bottom-right-radius: 0.5rem;
+    border-right-width: 1px;
+    border-top-right-radius: 0.5rem;
   }
 }
 

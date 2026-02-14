@@ -77,69 +77,7 @@ export interface Eon5CharState {
   desensitization: DesensitizationState
   languages: LanguageEntry[]
   mysteries: MysteryEntry[]
-
-  // UI state
-  currentStep: number
 }
-
-// Action types for the reducer
-export type Eon5Action =
-  | { type: "SET_DISTRIBUTION_MODEL"; model: DistributionModel }
-  | {
-      type: "SET_ATTRIBUTE_BASE"
-      attribute: AttributeName
-      value: number
-    }
-  | {
-      type: "SET_ATTRIBUTE_MODIFIERS"
-      attribute: AttributeName
-      value: number
-    }
-  | {
-      type: "ASSIGN_CHUNK"
-      attribute: AttributeName
-      chunkIndex: number
-    }
-  | { type: "UNASSIGN_CHUNK"; chunkIndex: number }
-  | {
-      type: "SET_ATTRIBUTE_CHUNK"
-      attribute: AttributeName
-      value: number
-    }
-  | { type: "SET_EXTRA_ATTRIBUTE_POINTS"; value: number }
-  | { type: "SET_GRUNDRUSTNING_MOD"; value: number }
-  | { type: "SET_GRUNDSKADA_MOD"; value: number }
-  | { type: "SET_SKILL_UNITS"; skillName: string; units: number }
-  | { type: "SET_SKILL_STATUS"; skillName: string; status: SkillStatus }
-  | { type: "SET_SKILL_BASE_VALUE"; skillName: string; value: number }
-  | {
-      type: "ADD_DYNAMIC_SKILL"
-      skill: Eon5Skill
-    }
-  | { type: "REMOVE_DYNAMIC_SKILL"; skillName: string }
-  | {
-      type: "SET_SPECIFIC_UNITS"
-      allocations: SpecificUnitAllocation[]
-    }
-  | {
-      type: "SET_GROUP_UNITS"
-      allocations: GroupUnitAllocation[]
-    }
-  | { type: "SET_FREE_UNITS"; units: number }
-  | { type: "TOGGLE_INCOMPETENT_SKILL"; skillName: string }
-  | { type: "TOGGLE_BASE_VALUE_SKILL"; skillName: string }
-  | {
-      type: "SET_DESENSITIZATION"
-      category: DesensitizationCategory
-      value: number
-    }
-  | { type: "ADD_LANGUAGE"; language: LanguageEntry }
-  | { type: "REMOVE_LANGUAGE"; index: number }
-  | { type: "ADD_MYSTERY"; mystery: MysteryEntry }
-  | { type: "REMOVE_MYSTERY"; index: number }
-  | { type: "SET_STEP"; step: number }
-  | { type: "LOAD_STATE"; state: Eon5CharState }
-
 // Validation error
 export interface ValidationError {
   field: string

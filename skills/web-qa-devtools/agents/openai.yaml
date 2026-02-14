@@ -1,0 +1,4 @@
+interface:
+  display_name: "Web QA DevTools"
+  short_description: "Thorough web QA via Chrome DevTools MCP"
+  default_prompt: "Use $web-qa-devtools to investigate this web app for bugs, correctness issues, and UX problems with reproducible evidence."

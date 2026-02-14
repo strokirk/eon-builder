@@ -1,4 +1,15 @@
-import { useEon5Dispatch, useEon5State } from "../eon5-context"
+import {
+  assignChunk,
+  eon5State,
+  setAttributeBase,
+  setAttributeChunk,
+  setAttributeModifiers,
+  setDistributionModel,
+  setExtraAttributePoints,
+  setGrundrustningMod,
+  setGrundskadaMod,
+  unassignChunk,
+} from "../eon5-store"
 import {
   ATTRIBUTES,
   DISTRIBUTION_MODELS,
@@ -18,8 +29,7 @@ import {
 } from "../eon5-utils"
 
 export function Eon5Attributes() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
 
   const totalPoints = getTotalAttributePoints(state.extraAttributePoints)
 
@@ -34,12 +44,7 @@ export function Eon5Attributes() {
           type="number"
           className="w-16 text-center"
           value={state.extraAttributePoints}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_EXTRA_ATTRIBUTE_POINTS",
-              value: parseInt(e.target.value) || 0,
-            })
-          }
+          onChange={(e) => setExtraAttributePoints(parseInt(e.target.value) || 0)}
         />
         <span className="text-sm text-gray-500">Total: {totalPoints} poäng</span>
       </div>
@@ -57,8 +62,7 @@ export function Eon5Attributes() {
 }
 
 function ModelSelector() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
 
   return (
     <div className="space-y-2">
@@ -70,7 +74,7 @@ function ModelSelector() {
               type="radio"
               name="distributionModel"
               checked={state.distributionModel === model}
-              onChange={() => dispatch({ type: "SET_DISTRIBUTION_MODEL", model })}
+              onChange={() => setDistributionModel(model)}
               className="h-4 w-4"
             />
             <span>
@@ -84,8 +88,7 @@ function ModelSelector() {
 }
 
 function AttributeTable() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
 
   const isFreePoints = state.distributionModel === "Fria poäng"
   const chunks = state.distributionModel !== null ? getChunks(state.distributionModel) : []
@@ -164,13 +167,7 @@ function AttributeTable() {
                     type="number"
                     className="w-14 text-center"
                     value={attr.base || ""}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_ATTRIBUTE_BASE",
-                        attribute: attrName,
-                        value: parseInt(e.target.value) || 0,
-                      })
-                    }
+                    onChange={(e) => setAttributeBase(attrName, parseInt(e.target.value) || 0)}
                   />
                 </td>
                 <td className="text-center">
@@ -178,13 +175,7 @@ function AttributeTable() {
                     type="number"
                     className="w-14 text-center"
                     value={attr.modifiers || ""}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_ATTRIBUTE_MODIFIERS",
-                        attribute: attrName,
-                        value: parseInt(e.target.value) || 0,
-                      })
-                    }
+                    onChange={(e) => setAttributeModifiers(attrName, parseInt(e.target.value) || 0)}
                   />
                 </td>
                 <td className="text-center">{preSpend}</td>
@@ -198,11 +189,7 @@ function AttributeTable() {
                         value={attr.assignedChunk ?? ""}
                         onChange={(e) => {
                           const val = parseInt(e.target.value) || 0
-                          dispatch({
-                            type: "SET_ATTRIBUTE_CHUNK",
-                            attribute: attrName,
-                            value: val,
-                          })
+                          setAttributeChunk(attrName, val)
                         }}
                       />
                     ) : (
@@ -214,17 +201,10 @@ function AttributeTable() {
                           if (val === "") {
                             // Unassign
                             if (assignedChunkIndex !== null) {
-                              dispatch({
-                                type: "UNASSIGN_CHUNK",
-                                chunkIndex: assignedChunkIndex,
-                              })
+                              unassignChunk(assignedChunkIndex)
                             }
                           } else {
-                            dispatch({
-                              type: "ASSIGN_CHUNK",
-                              attribute: attrName,
-                              chunkIndex: parseInt(val),
-                            })
+                            assignChunk(attrName, parseInt(val))
                           }
                         }}
                       >
@@ -280,8 +260,7 @@ function AttributeTable() {
 }
 
 function DerivedValues() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const kbAttr = state.attributes["Kroppsbyggnad"]
   const kbFinal = getFinalAttributeValue(kbAttr)
   const hasKb = kbAttr.assignedChunk !== null
@@ -304,12 +283,7 @@ function DerivedValues() {
               type="number"
               className="w-12 text-center text-xs"
               value={state.grundrustningMod || ""}
-              onChange={(e) =>
-                dispatch({
-                  type: "SET_GRUNDRUSTNING_MOD",
-                  value: parseInt(e.target.value) || 0,
-                })
-              }
+              onChange={(e) => setGrundrustningMod(parseInt(e.target.value) || 0)}
             />
           </label>
         </div>
@@ -328,12 +302,7 @@ function DerivedValues() {
               type="number"
               className="w-12 text-center text-xs"
               value={state.grundskadaMod || ""}
-              onChange={(e) =>
-                dispatch({
-                  type: "SET_GRUNDSKADA_MOD",
-                  value: parseInt(e.target.value) || 0,
-                })
-              }
+              onChange={(e) => setGrundskadaMod(parseInt(e.target.value) || 0)}
             />
           </label>
         </div>

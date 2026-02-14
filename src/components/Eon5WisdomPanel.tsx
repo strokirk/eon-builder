@@ -1,10 +1,9 @@
-import { useEon5Dispatch, useEon5State } from "../eon5-context"
+import { eon5State, toggleBaseValueSkill, toggleIncompetentSkill } from "../eon5-store"
 import { KNOWLEDGE_SKILLS, TOTAL_KNOWLEDGE_SKILLS } from "../eon5-data"
 import { getFinalAttributeValue, getWisdomEntry } from "../eon5-utils"
 
 export function Eon5WisdomPanel() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const wisdomAttr = state.attributes["Visdom"]
   const wisdomFinal = getFinalAttributeValue(wisdomAttr)
   const hasWisdom = wisdomAttr.assignedChunk !== null
@@ -19,11 +18,9 @@ export function Eon5WisdomPanel() {
     )
   }
 
-  const displayValue = hasWisdom ? wisdomFinal : wisdomAttr.base + wisdomAttr.modifiers
-
   return (
     <div className="space-y-3 p-3 border rounded bg-gray-50">
-      <h4 className="text-sm font-medium">Visdom-panel (Visdom: {displayValue})</h4>
+      <h4 className="text-sm font-medium">Visdom-panel (Visdom: {wisdomFinal})</h4>
 
       <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
         <div>
@@ -59,11 +56,7 @@ export function Eon5WisdomPanel() {
 
       {/* Incompetent skill selection */}
       {entry.incompetentCount > 0 && entry.incompetentCount < TOTAL_KNOWLEDGE_SKILLS && (
-        <IncompetentSelector
-          required={entry.incompetentCount}
-          selected={state.incompetentSkills}
-          dispatch={dispatch}
-        />
+        <IncompetentSelector required={entry.incompetentCount} selected={state.incompetentSkills} />
       )}
 
       {/* If all are incompetent, auto-apply */}
@@ -73,11 +66,7 @@ export function Eon5WisdomPanel() {
 
       {/* Base value 1 skill selection */}
       {entry.baseValueCount > 0 && entry.baseValueCount < TOTAL_KNOWLEDGE_SKILLS && (
-        <BaseValueSelector
-          required={entry.baseValueCount}
-          selected={state.baseValueSkills}
-          dispatch={dispatch}
-        />
+        <BaseValueSelector required={entry.baseValueCount} selected={state.baseValueSkills} />
       )}
 
       {/* If all get base value 1 */}
@@ -88,15 +77,7 @@ export function Eon5WisdomPanel() {
   )
 }
 
-function IncompetentSelector({
-  required,
-  selected,
-  dispatch,
-}: {
-  required: number
-  selected: string[]
-  dispatch: ReturnType<typeof useEon5Dispatch>
-}) {
+function IncompetentSelector({ required, selected }: { required: number; selected: string[] }) {
   const remaining = required - selected.length
 
   return (
@@ -122,12 +103,7 @@ function IncompetentSelector({
                     : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
               }`}
               disabled={!canSelect}
-              onClick={() =>
-                dispatch({
-                  type: "TOGGLE_INCOMPETENT_SKILL",
-                  skillName: skill,
-                })
-              }
+              onClick={() => toggleIncompetentSkill(skill)}
             >
               {skill}
               {isSelected && " (I)"}
@@ -139,15 +115,7 @@ function IncompetentSelector({
   )
 }
 
-function BaseValueSelector({
-  required,
-  selected,
-  dispatch,
-}: {
-  required: number
-  selected: string[]
-  dispatch: ReturnType<typeof useEon5Dispatch>
-}) {
+function BaseValueSelector({ required, selected }: { required: number; selected: string[] }) {
   const remaining = required - selected.length
 
   return (
@@ -173,12 +141,7 @@ function BaseValueSelector({
                     : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
               }`}
               disabled={!canSelect}
-              onClick={() =>
-                dispatch({
-                  type: "TOGGLE_BASE_VALUE_SKILL",
-                  skillName: skill,
-                })
-              }
+              onClick={() => toggleBaseValueSkill(skill)}
             >
               {skill}
               {isSelected && " (1)"}

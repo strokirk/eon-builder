@@ -64,10 +64,6 @@ export default function EonChar() {
         <TogglableSection name="Händelser">
           <EonEvents />
         </TogglableSection>
-        {false && (
-          // TODO:
-          <TogglableSection name="Expertiser &amp; Kännetecken"></TogglableSection>
-        )}
         <TogglableSection name="Färdigheter">
           <EonSkillList />
         </TogglableSection>

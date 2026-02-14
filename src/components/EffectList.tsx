@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { ReactElement, useState } from "react"
 import useUpdateEffect from "react-use/lib/useUpdateEffect"
 
 import { MinusButton } from "../buttons"
@@ -93,7 +93,7 @@ function EffectListItem({
   row: EffectData
   removeRow: () => void
   updateRow: (data: Partial<EffectData>) => void
-}): JSX.Element {
+}): ReactElement {
   const topRow = (
     <div className="flex items-center justify-between">
       <span className="italic text-sm">{row.type}</span>

@@ -380,7 +380,6 @@ export function createInitialState(): Eon5CharState {
     desensitization: { Utsatthet: 0, Våld: 0, Övernaturligt: 0 },
     languages: [],
     mysteries: [],
-    currentStep: 0,
   }
 }
 
