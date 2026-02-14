@@ -1,7 +1,23 @@
 import { useState } from "react"
 
 import { MinusButton, PlusButton } from "../buttons"
-import { useEon5Dispatch, useEon5State } from "../eon5-context"
+import {
+  addDynamicSkill,
+  addLanguage,
+  addMystery,
+  canIncreaseSkillUnits,
+  eon5State,
+  getUnitPoolUsageBreakdown,
+  removeDynamicSkill,
+  removeLanguage,
+  removeMystery,
+  setDesensitization,
+  setFreeUnits,
+  setGroupUnits,
+  setSkillStatus,
+  setSkillUnits,
+  setSpecificUnits,
+} from "../eon5-store"
 import {
   DESENSITIZATION_CATEGORIES,
   DYNAMIC_SKILL_TYPES,
@@ -22,8 +38,7 @@ import {
 } from "../eon5-utils"
 
 export function Eon5Skills() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
 
   const totalAvailable = computeTotalUnitsAvailable(state)
   const totalSpent = computeTotalUnitsSpent(state)
@@ -81,8 +96,20 @@ export function Eon5Skills() {
   )
 }
 
+function getCurrentSkillUnits(skillName: string): number {
+  const state = eon5State.value
+  const skill = [...state.skills, ...state.dynamicSkills].find((entry) => entry.name === skillName)
+  return skill?.spentUnits ?? 0
+}
+
 function UnitPoolSummary() {
-  const state = useEon5State()
+  const state = eon5State.value
+  const poolUsage = getUnitPoolUsageBreakdown(state)
+  const specificUsage = poolUsage.filter((pool) => pool.kind === "specific")
+  const groupUsage = poolUsage.filter((pool) => pool.kind === "group")
+  const freeUsage = poolUsage.find((pool) => pool.kind === "free")
+  const wisdomKnowledgeUsage = poolUsage.find((pool) => pool.kind === "wisdomKnowledge")
+  const wisdomExpertiseUsage = poolUsage.find((pool) => pool.kind === "wisdomExpertise")
 
   const wisdomAttr = state.attributes["Visdom"]
   const wisdomFinal = getFinalAttributeValue(wisdomAttr)
@@ -92,42 +119,42 @@ function UnitPoolSummary() {
   return (
     <div className="text-sm p-3 border rounded bg-gray-50 space-y-1">
       <h4 className="font-medium">Enhetssammanställning</h4>
-      {state.specificUnits.length > 0 && (
+      {specificUsage.length > 0 && (
         <div>
           <span className="font-medium">Specifika: </span>
-          {state.specificUnits.map((u, i) => (
+          {specificUsage.map((u, i) => (
             <span key={i}>
-              {u.skill} ({u.units}){i < state.specificUnits.length - 1 ? ", " : ""}
+              {u.label} ({u.used} / {u.total}){i < specificUsage.length - 1 ? ", " : ""}
             </span>
           ))}
         </div>
       )}
-      {state.groupUnits.length > 0 && (
+      {groupUsage.length > 0 && (
         <div>
           <span className="font-medium">Gruppenheter: </span>
-          {state.groupUnits.map((u, i) => (
+          {groupUsage.map((u, i) => (
             <span key={i}>
-              {u.group} ({u.units}){i < state.groupUnits.length - 1 ? ", " : ""}
+              {u.label} ({u.used} / {u.total}){i < groupUsage.length - 1 ? ", " : ""}
             </span>
           ))}
         </div>
       )}
-      {state.freeUnits > 0 && (
+      {freeUsage && (
         <div>
           <span className="font-medium">Valfria: </span>
-          {state.freeUnits}
+          {freeUsage.used} / {freeUsage.total}
         </div>
       )}
-      {wisdomEntry && wisdomEntry.extraUnits > 0 && (
+      {wisdomEntry && wisdomEntry.extraUnits > 0 && wisdomKnowledgeUsage && (
         <div>
           <span className="font-medium">Visdom bonus kunskapsenheter: </span>
-          {wisdomEntry.extraUnits}
+          {wisdomKnowledgeUsage.used} / {wisdomKnowledgeUsage.total}
         </div>
       )}
-      {wisdomEntry && wisdomEntry.expertiseBonus > 0 && (
+      {wisdomEntry && wisdomEntry.expertiseBonus > 0 && wisdomExpertiseUsage && (
         <div>
           <span className="font-medium">Visdom expertisbonus: </span>
-          {wisdomEntry.expertiseBonus}
+          {wisdomExpertiseUsage.used} / {wisdomExpertiseUsage.total}
         </div>
       )}
     </div>
@@ -135,27 +162,20 @@ function UnitPoolSummary() {
 }
 
 function SpecificUnitsInput() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const [newSkill, setNewSkill] = useState("")
   const [newUnits, setNewUnits] = useState(0)
 
   const addAllocation = () => {
     if (newSkill.trim() && newUnits > 0) {
-      dispatch({
-        type: "SET_SPECIFIC_UNITS",
-        allocations: [...state.specificUnits, { skill: newSkill.trim(), units: newUnits }],
-      })
+      setSpecificUnits([...state.specificUnits, { skill: newSkill.trim(), units: newUnits }])
       setNewSkill("")
       setNewUnits(0)
     }
   }
 
   const removeAllocation = (index: number) => {
-    dispatch({
-      type: "SET_SPECIFIC_UNITS",
-      allocations: state.specificUnits.filter((_, i) => i !== index),
-    })
+    setSpecificUnits(state.specificUnits.filter((_, i) => i !== index))
   }
 
   return (
@@ -191,8 +211,7 @@ function SpecificUnitsInput() {
 }
 
 function GroupUnitsButtons() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const [dialogOpen, setDialogOpen] = useState<UnitType | null>(null)
   const [inputValue, setInputValue] = useState(0)
 
@@ -219,27 +238,20 @@ function GroupUnitsButtons() {
     if (dialogOpen && inputValue > 0) {
       const existing = state.groupUnits.find((g) => g.group === dialogOpen)
       if (existing) {
-        dispatch({
-          type: "SET_GROUP_UNITS",
-          allocations: state.groupUnits.map((g) =>
+        setGroupUnits(
+          state.groupUnits.map((g) =>
             g.group === dialogOpen ? { ...g, units: g.units + inputValue } : g,
           ),
-        })
+        )
       } else {
-        dispatch({
-          type: "SET_GROUP_UNITS",
-          allocations: [...state.groupUnits, { group: dialogOpen, units: inputValue }],
-        })
+        setGroupUnits([...state.groupUnits, { group: dialogOpen, units: inputValue }])
       }
       closeDialog()
     }
   }
 
   const removeAllocation = (index: number) => {
-    dispatch({
-      type: "SET_GROUP_UNITS",
-      allocations: state.groupUnits.filter((_, i) => i !== index),
-    })
+    setGroupUnits(state.groupUnits.filter((_, i) => i !== index))
   }
 
   const getCurrentUnits = (type: UnitType): number => {
@@ -340,8 +352,7 @@ function GroupUnitsButtons() {
 }
 
 function FreeUnitsButton() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const [dialogOpen, setDialogOpen] = useState(false)
   const [inputValue, setInputValue] = useState(0)
 
@@ -357,28 +368,19 @@ function FreeUnitsButton() {
 
   const addUnits = () => {
     if (inputValue > 0) {
-      dispatch({
-        type: "SET_FREE_UNITS",
-        units: state.freeUnits + inputValue,
-      })
+      setFreeUnits(state.freeUnits + inputValue)
       closeDialog()
     }
   }
 
   const decreaseUnits = () => {
     if (state.freeUnits > 0) {
-      dispatch({
-        type: "SET_FREE_UNITS",
-        units: state.freeUnits - 1,
-      })
+      setFreeUnits(state.freeUnits - 1)
     }
   }
 
   const clearUnits = () => {
-    dispatch({
-      type: "SET_FREE_UNITS",
-      units: 0,
-    })
+    setFreeUnits(0)
   }
 
   return (
@@ -475,7 +477,7 @@ function FreeUnitsButton() {
 }
 
 function SkillGroupSection({ title, group }: { title: string; group: SkillGroupName }) {
-  const state = useEon5State()
+  const state = eon5State.value
 
   const skills = [
     ...state.skills.filter((s) => s.group === group),
@@ -509,7 +511,7 @@ function SkillGroupSection({ title, group }: { title: string; group: SkillGroupN
 }
 
 function SkillRow({ skill }: { skill: Eon5Skill }) {
-  const dispatch = useEon5Dispatch()
+  const [showBlockedHint, setShowBlockedHint] = useState(false)
   const totalValue = skill.baseValue + skill.spentUnits
   const maxForStatus =
     skill.status && skill.status in SKILL_STATUS_INFO
@@ -517,6 +519,18 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
       : MAX_SKILL_VALUE
   const isOverMax = totalValue > maxForStatus
   const overflow = isOverMax ? totalValue - maxForStatus : 0
+  const canIncrease = canIncreaseSkillUnits(skill.name)
+  const blockedByBudget = !canIncrease && totalValue < maxForStatus && skill.status !== "B"
+
+  const handleIncrease = () => {
+    const before = skill.spentUnits
+    setSkillUnits(skill.name, skill.spentUnits + 1)
+    const after = getCurrentSkillUnits(skill.name)
+    if (after === before) {
+      setShowBlockedHint(true)
+      window.setTimeout(() => setShowBlockedHint(false), 900)
+    }
+  }
 
   return (
     <tr className={isOverMax ? "bg-red-50" : ""}>
@@ -536,13 +550,7 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
             <button
               type="button"
               className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-              onClick={() =>
-                dispatch({
-                  type: "SET_SKILL_UNITS",
-                  skillName: skill.name,
-                  units: skill.spentUnits - 1,
-                })
-              }
+              onClick={() => setSkillUnits(skill.name, skill.spentUnits - 1)}
               disabled={skill.spentUnits <= 0}
             >
               -
@@ -550,18 +558,19 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
             <span className="w-6 text-center">{skill.spentUnits}</span>
             <button
               type="button"
-              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-              onClick={() =>
-                dispatch({
-                  type: "SET_SKILL_UNITS",
-                  skillName: skill.name,
-                  units: skill.spentUnits + 1,
-                })
-              }
+              className={`w-6 h-6 border rounded text-xs hover:bg-gray-100 ${
+                blockedByBudget ? "opacity-45" : ""
+              }`}
+              onClick={handleIncrease}
               disabled={totalValue >= maxForStatus}
+              aria-disabled={blockedByBudget}
+              title={blockedByBudget ? "Inga kompatibla enheter kvar att spendera" : undefined}
             >
               +
             </button>
+            {showBlockedHint && (
+              <span className="text-[10px] text-amber-700 ml-1">Ingen giltig enhetspool kvar</span>
+            )}
           </div>
         )}
       </td>
@@ -574,13 +583,7 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
         <select
           className="text-xs border rounded px-1 h-6 w-14"
           value={skill.status || ""}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_SKILL_STATUS",
-              skillName: skill.name,
-              status: (e.target.value || null) as SkillStatus,
-            })
-          }
+          onChange={(e) => setSkillStatus(skill.name, (e.target.value || null) as SkillStatus)}
         >
           <option value="">—</option>
           <option value="T">T</option>
@@ -593,8 +596,7 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
 }
 
 function DynamicSkillsSection() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const [newName, setNewName] = useState("")
   const [newType, setNewType] = useState<DynamicSkillType>("E")
   const [newGroup, setNewGroup] = useState<SkillGroupName>("Övriga färdigheter")
@@ -607,16 +609,13 @@ function DynamicSkillsSection() {
 
   const addSkill = () => {
     if (newName.trim()) {
-      dispatch({
-        type: "ADD_DYNAMIC_SKILL",
-        skill: {
-          name: newName.trim(),
-          group: newGroup,
-          baseValue: 0,
-          spentUnits: 0,
-          status: null,
-          dynamicType: newType,
-        },
+      addDynamicSkill({
+        name: newName.trim(),
+        group: newGroup,
+        baseValue: 0,
+        spentUnits: 0,
+        status: null,
+        dynamicType: newType,
       })
       setNewName("")
     }
@@ -645,82 +644,7 @@ function DynamicSkillsSection() {
           </thead>
           <tbody>
             {övrigaSkills.map((skill) => (
-              <tr key={skill.name}>
-                <td>
-                  {skill.name}
-                  <span className="text-xs text-gray-500 ml-1">({skill.dynamicType})</span>
-                </td>
-                <td className="text-center">{skill.baseValue}</td>
-                <td className="text-center">
-                  {skill.status === "B" ? (
-                    <span className="text-gray-400">—</span>
-                  ) : (
-                    <div className="flex items-center justify-center gap-1">
-                      <button
-                        type="button"
-                        className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-                        onClick={() =>
-                          dispatch({
-                            type: "SET_SKILL_UNITS",
-                            skillName: skill.name,
-                            units: skill.spentUnits - 1,
-                          })
-                        }
-                        disabled={skill.spentUnits <= 0}
-                      >
-                        -
-                      </button>
-                      <span className="w-6 text-center">{skill.spentUnits}</span>
-                      <button
-                        type="button"
-                        className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-                        onClick={() =>
-                          dispatch({
-                            type: "SET_SKILL_UNITS",
-                            skillName: skill.name,
-                            units: skill.spentUnits + 1,
-                          })
-                        }
-                        disabled={skill.baseValue + skill.spentUnits >= MAX_SKILL_VALUE}
-                      >
-                        +
-                      </button>
-                    </div>
-                  )}
-                </td>
-                <td className="text-center font-bold">{skill.baseValue + skill.spentUnits}</td>
-                <td className="text-center fn-dice">
-                  {skillValueToDice(skill.baseValue + skill.spentUnits)}
-                </td>
-                <td className="text-center">
-                  <select
-                    className="text-xs border rounded px-1 h-6 w-14"
-                    value={skill.status || ""}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_SKILL_STATUS",
-                        skillName: skill.name,
-                        status: (e.target.value || null) as SkillStatus,
-                      })
-                    }
-                  >
-                    <option value="">—</option>
-                    <option value="T">T</option>
-                    <option value="I">I</option>
-                    <option value="B">B</option>
-                  </select>
-                </td>
-                <td>
-                  <MinusButton
-                    onClick={() =>
-                      dispatch({
-                        type: "REMOVE_DYNAMIC_SKILL",
-                        skillName: skill.name,
-                      })
-                    }
-                  />
-                </td>
-              </tr>
+              <DynamicSkillRow key={skill.name} skill={skill} />
             ))}
           </tbody>
         </table>
@@ -765,9 +689,84 @@ function DynamicSkillsSection() {
   )
 }
 
+function DynamicSkillRow({ skill }: { skill: Eon5Skill }) {
+  const [showBlockedHint, setShowBlockedHint] = useState(false)
+  const totalValue = skill.baseValue + skill.spentUnits
+  const canIncrease = canIncreaseSkillUnits(skill.name)
+  const blockedByBudget = !canIncrease && totalValue < MAX_SKILL_VALUE && skill.status !== "B"
+
+  const handleIncrease = () => {
+    const before = skill.spentUnits
+    setSkillUnits(skill.name, skill.spentUnits + 1)
+    const after = getCurrentSkillUnits(skill.name)
+    if (after === before) {
+      setShowBlockedHint(true)
+      window.setTimeout(() => setShowBlockedHint(false), 900)
+    }
+  }
+
+  return (
+    <tr>
+      <td>
+        {skill.name}
+        <span className="text-xs text-gray-500 ml-1">({skill.dynamicType})</span>
+      </td>
+      <td className="text-center">{skill.baseValue}</td>
+      <td className="text-center">
+        {skill.status === "B" ? (
+          <span className="text-gray-400">—</span>
+        ) : (
+          <div className="flex items-center justify-center gap-1">
+            <button
+              type="button"
+              className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+              onClick={() => setSkillUnits(skill.name, skill.spentUnits - 1)}
+              disabled={skill.spentUnits <= 0}
+            >
+              -
+            </button>
+            <span className="w-6 text-center">{skill.spentUnits}</span>
+            <button
+              type="button"
+              className={`w-6 h-6 border rounded text-xs hover:bg-gray-100 ${
+                blockedByBudget ? "opacity-45" : ""
+              }`}
+              onClick={handleIncrease}
+              disabled={skill.baseValue + skill.spentUnits >= MAX_SKILL_VALUE}
+              aria-disabled={blockedByBudget}
+              title={blockedByBudget ? "Inga kompatibla enheter kvar att spendera" : undefined}
+            >
+              +
+            </button>
+            {showBlockedHint && (
+              <span className="text-[10px] text-amber-700 ml-1">Ingen giltig enhetspool kvar</span>
+            )}
+          </div>
+        )}
+      </td>
+      <td className="text-center font-bold">{skill.baseValue + skill.spentUnits}</td>
+      <td className="text-center fn-dice">{skillValueToDice(skill.baseValue + skill.spentUnits)}</td>
+      <td className="text-center">
+        <select
+          className="text-xs border rounded px-1 h-6 w-14"
+          value={skill.status || ""}
+          onChange={(e) => setSkillStatus(skill.name, (e.target.value || null) as SkillStatus)}
+        >
+          <option value="">—</option>
+          <option value="T">T</option>
+          <option value="I">I</option>
+          <option value="B">B</option>
+        </select>
+      </td>
+      <td>
+        <MinusButton onClick={() => removeDynamicSkill(skill.name)} />
+      </td>
+    </tr>
+  )
+}
+
 function DesensitizationSection() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
 
   return (
     <div className="space-y-2">
@@ -780,13 +779,7 @@ function DesensitizationSection() {
               <button
                 type="button"
                 className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-                onClick={() =>
-                  dispatch({
-                    type: "SET_DESENSITIZATION",
-                    category: cat,
-                    value: state.desensitization[cat] - 1,
-                  })
-                }
+                onClick={() => setDesensitization(cat, state.desensitization[cat] - 1)}
                 disabled={state.desensitization[cat] <= 0}
               >
                 -
@@ -795,13 +788,7 @@ function DesensitizationSection() {
               <button
                 type="button"
                 className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-                onClick={() =>
-                  dispatch({
-                    type: "SET_DESENSITIZATION",
-                    category: cat,
-                    value: state.desensitization[cat] + 1,
-                  })
-                }
+                onClick={() => setDesensitization(cat, state.desensitization[cat] + 1)}
               >
                 +
               </button>
@@ -814,17 +801,13 @@ function DesensitizationSection() {
 }
 
 function LanguagesSection() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const [newName, setNewName] = useState("")
   const [newType, setNewType] = useState<"tal" | "skrift">("tal")
 
-  const addLanguage = () => {
+  const handleAddLanguage = () => {
     if (newName.trim()) {
-      dispatch({
-        type: "ADD_LANGUAGE",
-        language: { name: newName.trim(), type: newType },
-      })
+      addLanguage({ name: newName.trim(), type: newType })
       setNewName("")
     }
   }
@@ -840,7 +823,7 @@ function LanguagesSection() {
               className="text-sm px-2 py-1 bg-gray-100 rounded border flex items-center gap-1"
             >
               {lang.name} ({lang.type})
-              <MinusButton onClick={() => dispatch({ type: "REMOVE_LANGUAGE", index: i })} />
+              <MinusButton onClick={() => removeLanguage(i)} />
             </span>
           ))}
         </div>
@@ -853,7 +836,7 @@ function LanguagesSection() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") addLanguage()
+            if (e.key === "Enter") handleAddLanguage()
           }}
         />
         <select
@@ -864,23 +847,19 @@ function LanguagesSection() {
           <option value="tal">Talspråk</option>
           <option value="skrift">Skriftspråk</option>
         </select>
-        <PlusButton onClick={addLanguage} />
+        <PlusButton onClick={handleAddLanguage} />
       </div>
     </div>
   )
 }
 
 function MysteriesSection() {
-  const state = useEon5State()
-  const dispatch = useEon5Dispatch()
+  const state = eon5State.value
   const [newName, setNewName] = useState("")
 
-  const addMystery = () => {
+  const handleAddMystery = () => {
     if (newName.trim()) {
-      dispatch({
-        type: "ADD_MYSTERY",
-        mystery: { name: newName.trim() },
-      })
+      addMystery({ name: newName.trim() })
       setNewName("")
     }
   }
@@ -896,7 +875,7 @@ function MysteriesSection() {
               className="text-sm px-2 py-1 bg-gray-100 rounded border flex items-center gap-1"
             >
               {m.name}
-              <MinusButton onClick={() => dispatch({ type: "REMOVE_MYSTERY", index: i })} />
+              <MinusButton onClick={() => removeMystery(i)} />
             </span>
           ))}
         </div>
@@ -909,10 +888,10 @@ function MysteriesSection() {
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") addMystery()
+            if (e.key === "Enter") handleAddMystery()
           }}
         />
-        <PlusButton onClick={addMystery} />
+        <PlusButton onClick={handleAddMystery} />
       </div>
     </div>
   )
