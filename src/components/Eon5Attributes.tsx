@@ -13,6 +13,7 @@ import {
 import {
   ATTRIBUTES,
   DISTRIBUTION_MODELS,
+  MAX_CHUNK_VALUE,
   MIN_FINAL_ATTRIBUTE_VALUE,
   REFERENCE_VALUE,
   type AttributeName,
@@ -26,6 +27,7 @@ import {
   getPreSpend,
   getTotalAttributePoints,
   getChunks,
+  validateAttributes,
 } from "../eon5-utils"
 
 export function Eon5Attributes() {
@@ -89,6 +91,7 @@ function ModelSelector() {
 
 function AttributeTable() {
   const state = eon5State.value
+  const attributeViolations = validateAttributes(state)
 
   const isFreePoints = state.distributionModel === "Fria poäng"
   const chunks = state.distributionModel !== null ? getChunks(state.distributionModel) : []
@@ -129,6 +132,16 @@ function AttributeTable() {
           </span>
         </div>
       )}
+      {state.distributionModel !== null && attributeViolations.length > 0 && (
+        <div className="mb-2 p-2 border border-amber-300 rounded bg-amber-50 space-y-1">
+          <h4 className="text-sm font-medium text-amber-800">Regelvarningar:</h4>
+          {attributeViolations.map((violation, i) => (
+            <p key={`${violation.field}:${violation.message}:${i}`} className="text-sm text-amber-700">
+              {violation.field}: {violation.message}
+            </p>
+          ))}
+        </div>
+      )}
       <table className="table-condensed w-full">
         <thead>
           <tr>
@@ -147,7 +160,9 @@ function AttributeTable() {
             const preSpend = getPreSpend(attr)
             const finalVal = getFinalAttributeValue(attr)
             const isVisdom = attrName === "Visdom"
-            const isInvalid = attr.assignedChunk !== null && finalVal < MIN_FINAL_ATTRIBUTE_VALUE
+            const exceedsFreePointCap =
+              isFreePoints && (attr.assignedChunk ?? 0) > MAX_CHUNK_VALUE
+            const isInvalid = finalVal < MIN_FINAL_ATTRIBUTE_VALUE || exceedsFreePointCap
             const isReference = finalVal === REFERENCE_VALUE
 
             // Find which chunk index this attribute has
@@ -234,7 +249,10 @@ function AttributeTable() {
                 >
                   {isFreePoints || attr.assignedChunk !== null ? finalVal : preSpend || "—"}
                   {isInvalid && (
-                    <span className="text-xs ml-1" title="Under minimum 4">
+                    <span
+                      className="text-xs ml-1"
+                      title={exceedsFreePointCap ? "Över max 10 fria poäng" : "Under minimum 4"}
+                    >
                       !
                     </span>
                   )}

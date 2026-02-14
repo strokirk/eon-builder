@@ -5,6 +5,7 @@ import {
   DERIVED_VALUES,
   DISTRIBUTION_MODELS,
   KNOWLEDGE_SKILLS,
+  MAX_CHUNK_VALUE,
   MAX_SKILL_VALUE,
   MIN_FINAL_ATTRIBUTE_VALUE,
   SKILL_STATUS_INFO,
@@ -178,6 +179,17 @@ export function validateAttributes(state: Eon5CharState): ValidationError[] {
         severity: "warning",
       })
     }
+
+    for (const attrName of ATTRIBUTES) {
+      const chunk = state.attributes[attrName].assignedChunk
+      if (chunk !== null && chunk > MAX_CHUNK_VALUE) {
+        errors.push({
+          field: attrName,
+          message: `För många fria poäng på attributet: ${chunk} / ${MAX_CHUNK_VALUE}`,
+          severity: "warning",
+        })
+      }
+    }
   } else if (assignedCount < ATTRIBUTES.length) {
     errors.push({
       field: "chunks",
@@ -210,7 +222,7 @@ export function validateAttributes(state: Eon5CharState): ValidationError[] {
   // Check minimum final values
   for (const attrName of ATTRIBUTES) {
     const finalVal = getFinalAttributeValue(state.attributes[attrName])
-    if (state.attributes[attrName].assignedChunk !== null && finalVal < MIN_FINAL_ATTRIBUTE_VALUE) {
+    if (finalVal < MIN_FINAL_ATTRIBUTE_VALUE) {
       errors.push({
         field: attrName,
         message: `${attrName} slutvärde (${finalVal}) är under minimum (${MIN_FINAL_ATTRIBUTE_VALUE})`,

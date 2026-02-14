@@ -87,7 +87,7 @@ export function unassignChunk(chunkIndex: number): void {
 
 export function setAttributeChunk(attribute: AttributeName, value: number): void {
   updateEon5((draft) => {
-    draft.attributes[attribute].assignedChunk = value
+    draft.attributes[attribute].assignedChunk = Math.max(0, value)
   })
 }
 
