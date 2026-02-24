@@ -7,7 +7,6 @@ import { createInitialState } from "../eon5-utils"
 import { Eon5Attributes } from "./Eon5Attributes"
 import { Eon5Skills } from "./Eon5Skills"
 import { Eon5Summary } from "./Eon5Summary"
-import { Eon5WisdomPanel } from "./Eon5WisdomPanel"
 import { TogglableSection } from "./TogglableSection"
 import { getTotalAttributePoints, validateAttributes, validateSkills } from "../eon5-utils"
 import { ATTRIBUTES } from "../eon5-data"
@@ -96,23 +95,15 @@ export function Eon5CharTool() {
 
       {/* Step content */}
       <div className="space-y-4">
-        <TogglableSection id="eon5-step-1" name="1. Attribut" isCollapsed={false}>
+        <TogglableSection id="eon5-step-1" name="1. Attribut">
           <Eon5Attributes />
         </TogglableSection>
 
-        <TogglableSection
-          id="eon5-step-2"
-          name="2. Visdom & Kunskapsfärdigheter"
-          isCollapsed={true}
-        >
-          <Eon5WisdomPanel />
-        </TogglableSection>
-
-        <TogglableSection id="eon5-step-3" name="3. Färdigheter & Enheter" isCollapsed={true}>
+        <TogglableSection id="eon5-step-2" name="2. Färdigheter & Enheter">
           <Eon5Skills />
         </TogglableSection>
 
-        <TogglableSection id="eon5-step-4" name="4. Sammanfattning" isCollapsed={true}>
+        <TogglableSection id="eon5-step-3" name="3. Sammanfattning">
           <Eon5Summary />
         </TogglableSection>
       </div>

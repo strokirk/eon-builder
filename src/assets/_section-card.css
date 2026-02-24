@@ -1,0 +1,26 @@
+.section-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+}
+
+.section-toggle-btn {
+  font-weight: 600;
+  align-items: center;
+  color: var(--color-brand);
+  display: inline-flex;
+  font-size: 1.8rem;
+  gap: 0.5rem;
+  padding: 0;
+  width: fit-content;
+}
+
+.section-toggle-status {
+  font-size: 0.9rem;
+}
+
+.section-content.is-collapsed {
+  display: none;
+}

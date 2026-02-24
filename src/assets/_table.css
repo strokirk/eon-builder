@@ -1,0 +1,48 @@
+.table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  width: 100%;
+}
+
+.table-eon {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 640px;
+  width: 100%;
+
+  --bg-header: #f7efe1;
+}
+
+.table-eon th,
+.table-eon td {
+  border-bottom: 1px solid rgba(189, 162, 127, 0.35);
+  padding: 0.4rem 0.45rem;
+  vertical-align: middle;
+  
+
+}
+
+.table-eon thead th {
+  background: var(--bg-header);
+  color: #4a2f17;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table-eon--dense th,
+.table-eon--dense td {
+  padding: 0.3rem 0.35rem;
+}
+
+.table-sticky-first tr > :first-child {
+  left: 0;
+  position: sticky;
+  z-index: 2;
+  background: var(--color-surface);
+}
+.table-sticky-first thead tr > :first-child {
+  background: var(--bg-header);
+}
+

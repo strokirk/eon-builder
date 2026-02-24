@@ -87,154 +87,43 @@ export interface WisdomEntry {
   newKnowledgeCost: number
 }
 
+const we = (
+  incompetentCount: number,
+  baseValueCount: number,
+  extraUnits: number,
+  expertiseBonus: number,
+  newKnowledgeCost: number,
+): WisdomEntry => {
+  return {
+    incompetentCount,
+    baseValueCount,
+    extraUnits,
+    expertiseBonus,
+    newKnowledgeCost,
+  }
+}
 export const WISDOM_TABLE: Record<number, WisdomEntry> = {
-  4: {
-    incompetentCount: 13,
-    baseValueCount: 0,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 10,
-  },
-  5: {
-    incompetentCount: 10,
-    baseValueCount: 0,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 10,
-  },
-  6: {
-    incompetentCount: 9,
-    baseValueCount: 0,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 8,
-  },
-  7: {
-    incompetentCount: 6,
-    baseValueCount: 0,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 8,
-  },
-  8: {
-    incompetentCount: 5,
-    baseValueCount: 0,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 6,
-  },
-  9: {
-    incompetentCount: 3,
-    baseValueCount: 1,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 6,
-  },
-  10: {
-    incompetentCount: 2,
-    baseValueCount: 2,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 5,
-  },
-  11: {
-    incompetentCount: 0,
-    baseValueCount: 3,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 5,
-  },
-  12: {
-    incompetentCount: 0,
-    baseValueCount: 4,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 4,
-  },
-  13: {
-    incompetentCount: 0,
-    baseValueCount: 6,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 4,
-  },
-  14: {
-    incompetentCount: 0,
-    baseValueCount: 8,
-    extraUnits: 0,
-    expertiseBonus: 0,
-    newKnowledgeCost: 4,
-  },
-  15: {
-    incompetentCount: 0,
-    baseValueCount: 9,
-    extraUnits: 2,
-    expertiseBonus: 0,
-    newKnowledgeCost: 4,
-  },
-  16: {
-    incompetentCount: 0,
-    baseValueCount: 10,
-    extraUnits: 0,
-    expertiseBonus: 2,
-    newKnowledgeCost: 3,
-  },
-  17: {
-    incompetentCount: 0,
-    baseValueCount: 11,
-    extraUnits: 0,
-    expertiseBonus: 4,
-    newKnowledgeCost: 3,
-  },
-  18: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 0,
-    expertiseBonus: 4,
-    newKnowledgeCost: 3,
-  },
-  19: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 1,
-    expertiseBonus: 6,
-    newKnowledgeCost: 3,
-  },
-  20: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 1,
-    expertiseBonus: 8,
-    newKnowledgeCost: 2,
-  },
-  21: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 2,
-    expertiseBonus: 10,
-    newKnowledgeCost: 2,
-  },
-  22: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 3,
-    expertiseBonus: 12,
-    newKnowledgeCost: 2,
-  },
-  23: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 4,
-    expertiseBonus: 14,
-    newKnowledgeCost: 2,
-  },
-  24: {
-    incompetentCount: 0,
-    baseValueCount: 13,
-    extraUnits: 5,
-    expertiseBonus: 16,
-    newKnowledgeCost: 2,
-  },
+  4: we(13, 0, 0, 0, 10),
+  5: we(10, 0, 0, 0, 10),
+  6: we(9, 0, 0, 0, 8),
+  7: we(6, 0, 0, 0, 8),
+  8: we(5, 0, 0, 0, 6),
+  9: we(3, 1, 0, 0, 6),
+  10: we(2, 2, 0, 0, 5),
+  11: we(0, 3, 0, 0, 5),
+  12: we(0, 4, 0, 0, 4),
+  13: we(0, 6, 0, 0, 4),
+  14: we(0, 8, 0, 0, 4),
+  15: we(0, 9, 2, 0, 4),
+  16: we(0, 10, 0, 2, 3),
+  17: we(0, 11, 0, 4, 3),
+  18: we(0, 13, 0, 4, 3),
+  19: we(0, 13, 1, 6, 3),
+  20: we(0, 13, 1, 8, 2),
+  21: we(0, 13, 2, 10, 2),
+  22: we(0, 13, 3, 12, 2),
+  23: we(0, 13, 4, 14, 2),
+  24: we(0, 13, 5, 16, 2),
 }
 
 // Skill groups and their skills
@@ -253,6 +142,9 @@ export const KNOWLEDGE_SKILLS = [
   "Teoretisk magi",
   "Undervisa",
 ] as const
+
+// Total knowledge skills count
+export const TOTAL_KNOWLEDGE_SKILLS = KNOWLEDGE_SKILLS.length
 
 export const MYSTIC_SKILLS_BASE = ["Ceremoni", "Förnimma", "Förvränga"] as const
 
@@ -410,9 +302,3 @@ export const DESENSITIZATION_BUYABLE_WITH: Record<DesensitizationCategory, UnitT
 }
 
 export const DESENSITIZATION_THRESHOLDS = [5, 10, 15, 20, 25]
-
-// Reference value for "average human"
-export const REFERENCE_VALUE = 12
-
-// Total knowledge skills count
-export const TOTAL_KNOWLEDGE_SKILLS = 13

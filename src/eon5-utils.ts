@@ -34,9 +34,8 @@ export function attributeToDice(value: number): string {
   if (value < 4) return `<4`
   if (ATTRIBUTE_TO_DICE[value]) return ATTRIBUTE_TO_DICE[value]
   // Extend pattern for values > 24
-  const numDice = Math.floor((value - 4) / 4) + 1
-  const bonus = (value - 4) % 4
-  return bonus > 0 ? `${numDice}T6+${bonus}` : `${numDice}T6`
+  const { numDice, bonus } = attributeToDiceComponents(value)
+  return formatDice({ numDice, bonus }) || `<4`
 }
 
 // Compute { numDice, bonus } for arbitrary attribute values
@@ -47,6 +46,20 @@ export function attributeToDiceComponents(value: number): {
   if (value < 4) return { numDice: 0, bonus: 0 }
   const numDice = Math.floor((value - 4) / 4) + 1
   const bonus = (value - 4) % 4
+  return { numDice, bonus }
+}
+
+export function formatDice(dice: { numDice: number; bonus: number }): string | null {
+  const { numDice, bonus } = dice
+  if (numDice === 0) return null
+  return bonus > 0 ? `${numDice}T6+${bonus}` : `${numDice}T6`
+}
+
+export function parseDice(diceStr: string): { numDice: number; bonus: number } | null {
+  const match = diceStr.match(/(\d+)T6(?:\+(\d+))?/)
+  if (!match) return null
+  const numDice = parseInt(match[1])
+  const bonus = match[2] ? parseInt(match[2]) : 0
   return { numDice, bonus }
 }
 
@@ -64,7 +77,17 @@ export function getGrundskada(kb: number): string {
   const numDice = Math.floor((kb - 4) / 4) + 1
   const bonusPattern = [2, 2, 3, 3]
   const bonus = bonusPattern[(kb - 4) % 4]
-  return bonus > 0 ? `${numDice}T6+${bonus}` : `${numDice}T6`
+  return formatDice({ numDice, bonus }) || "–"
+}
+
+// Apply a flat modifier to a grundskada dice string (e.g. "2T6+2" + mod 1 → "2T6+3")
+export function getGrundskadaWithMod(kb: number, mod: number): string {
+  const base = getGrundskada(kb)
+  if (mod === 0) return base
+  const parsed = parseDice(base)
+  const numDice = parsed ? parsed.numDice : 0
+  const baseMod = parsed ? parsed.bonus : 0
+  return formatDice({ numDice, bonus: baseMod + mod }) || `${numDice}T6`
 }
 
 export function getGrundrustningFromTable(kb: number): number {
@@ -167,14 +190,14 @@ export function validateAttributes(state: Eon5CharState): ValidationError[] {
     )
     if (usedPoints > totalPoints) {
       errors.push({
-        field: "chunks",
+        field: "Attributpoäng",
         message: `För många poäng använda: ${usedPoints} / ${totalPoints}`,
         severity: "error",
       })
     }
     if (usedPoints < totalPoints) {
       errors.push({
-        field: "chunks",
+        field: "Attributpoäng",
         message: `${totalPoints - usedPoints} poäng kvar att fördela`,
         severity: "warning",
       })
@@ -192,7 +215,7 @@ export function validateAttributes(state: Eon5CharState): ValidationError[] {
     }
   } else if (assignedCount < ATTRIBUTES.length) {
     errors.push({
-      field: "chunks",
+      field: "Klumpsummor",
       message: `${ATTRIBUTES.length - assignedCount} klumpsumma(or) ej tilldelade`,
       severity: "error",
     })
@@ -307,7 +330,7 @@ export function validateSkills(state: Eon5CharState): ValidationError[] {
   const totalUnitsSpent = computeTotalUnitsSpent(state)
   if (totalUnitsAvailable > totalUnitsSpent) {
     errors.push({
-      field: "units",
+      field: "Färdighetsenheter",
       message: `${totalUnitsAvailable - totalUnitsSpent} enheter kvar att spendera`,
       severity: "warning",
     })

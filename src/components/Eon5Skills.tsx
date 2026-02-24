@@ -1,3 +1,4 @@
+import classNames from "classnames"
 import { useState } from "react"
 
 import { MinusButton, PlusButton } from "../buttons"
@@ -18,6 +19,7 @@ import {
   setSkillUnits,
   setSpecificUnits,
 } from "../eon5-store"
+import { Eon5WisdomPanel } from "./Eon5WisdomPanel"
 import {
   DESENSITIZATION_CATEGORIES,
   DYNAMIC_SKILL_TYPES,
@@ -36,6 +38,7 @@ import {
   getWisdomEntry,
   skillValueToDice,
 } from "../eon5-utils"
+import { NumberInput } from "./ui/NumberInput"
 
 export function Eon5Skills() {
   const state = eon5State.value
@@ -46,7 +49,8 @@ export function Eon5Skills() {
 
   return (
     <div className="space-y-6">
-      <h3>Steg 2–4: Färdigheter & Enheter</h3>
+      {/* Wisdom panel */}
+      <Eon5WisdomPanel />
 
       {/* Unit pool summary */}
       <UnitPoolSummary />
@@ -54,11 +58,11 @@ export function Eon5Skills() {
       {/* Specific unit allocations input */}
       <SpecificUnitsInput />
 
-      {/* Group unit allocations with dialog buttons */}
-      <GroupUnitsButtons />
+      {/* Group unit allocations */}
+      <GroupUnitsInput />
 
-      {/* Free units with dialog button */}
-      <FreeUnitsButton />
+      {/* Free units */}
+      <FreeUnitsInput />
 
       {/* Budget bar */}
       <div
@@ -147,27 +151,30 @@ function UnitPoolSummary() {
           ))}
         </div>
       )}
-      {freeUsage && (
-        <div>
-          <span className="font-medium">Valfria: </span>
-          {freeUsage.used} / {freeUsage.total}
-        </div>
+      {freeUsage && <Used label="Valfria" used={freeUsage} />}
+      {wisdomEntry && wisdomEntry.extraUnits > 0 && (
+        <Used label="Visdom bonus kunskapsenheter" used={wisdomKnowledgeUsage} />
       )}
-      {wisdomEntry && wisdomEntry.extraUnits > 0 && wisdomKnowledgeUsage && (
-        <div>
-          <span className="font-medium">Visdom bonus kunskapsenheter: </span>
-          {wisdomKnowledgeUsage.used} / {wisdomKnowledgeUsage.total}
-        </div>
-      )}
-      {wisdomEntry && wisdomEntry.expertiseBonus > 0 && wisdomExpertiseUsage && (
-        <div>
-          <span className="font-medium">Visdom expertisbonus: </span>
-          {wisdomExpertiseUsage.used} / {wisdomExpertiseUsage.total}
-        </div>
+      {wisdomEntry && wisdomEntry.expertiseBonus > 0 && (
+        <Used label="Visdom expertisbonus" used={wisdomExpertiseUsage} />
       )}
     </div>
   )
 }
+
+const Used = ({
+  label,
+  used: { used, total } = {},
+}: {
+  label: string
+  used?: { used?: number; total?: number }
+}) =>
+  total && (
+    <>
+      <span className="font-medium">{label}: </span>
+      {used} / {total}
+    </>
+  )
 
 function SpecificUnitsInput() {
   const state = eon5State.value
@@ -186,14 +193,26 @@ function SpecificUnitsInput() {
     setSpecificUnits(state.specificUnits.filter((_, i) => i !== index))
   }
 
+  const updateUnits = (index: number, val: number) => {
+    if (val <= 0) {
+      removeAllocation(index)
+    } else {
+      setSpecificUnits(state.specificUnits.map((a, i) => (i === index ? { ...a, units: val } : a)))
+    }
+  }
+
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">Specifika färdighetsenheter</h4>
       {state.specificUnits.map((alloc, i) => (
         <div key={i} className="flex items-center gap-2 text-sm">
-          <span>
-            {alloc.skill} ({alloc.units})
-          </span>
+          <span className="flex-1">{alloc.skill}</span>
+          <NumberInput
+            min={1}
+            className="w-16"
+            value={alloc.units}
+            onChange={(e) => updateUnits(i, e)}
+          />
           <MinusButton onClick={() => removeAllocation(i)} />
         </div>
       ))}
@@ -209,18 +228,20 @@ function SpecificUnitsInput() {
           placeholder="Färdighetsnamn"
           value={newSkill}
           onChange={(e) => setNewSkill(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") addAllocation()
+          }}
         />
         <label className="sr-only" htmlFor="specific-unit-count">
           Antal enheter
         </label>
-        <input
+        <NumberInput
           id="specific-unit-count"
           name="specific-unit-count"
-          type="number"
-          className="input-base input-compact w-14 text-center"
+          className="w-14"
           min={1}
-          value={newUnits || ""}
-          onChange={(e) => setNewUnits(parseInt(e.target.value) || 0)}
+          value={newUnits || undefined}
+          onChange={setNewUnits}
         />
         <PlusButton onClick={addAllocation} />
       </div>
@@ -228,10 +249,8 @@ function SpecificUnitsInput() {
   )
 }
 
-function GroupUnitsButtons() {
+function GroupUnitsInput() {
   const state = eon5State.value
-  const [dialogOpen, setDialogOpen] = useState<UnitType | null>(null)
-  const [inputValue, setInputValue] = useState(0)
 
   const unitTypes: UnitType[] = [
     "Kunskapsenheter",
@@ -242,254 +261,63 @@ function GroupUnitsButtons() {
     "Vildmarksenheter",
   ]
 
-  const openDialog = (type: UnitType) => {
-    setDialogOpen(type)
-    setInputValue(0)
-  }
-
-  const closeDialog = () => {
-    setDialogOpen(null)
-    setInputValue(0)
-  }
-
-  const addUnits = () => {
-    if (dialogOpen && inputValue > 0) {
-      const existing = state.groupUnits.find((g) => g.group === dialogOpen)
-      if (existing) {
-        setGroupUnits(
-          state.groupUnits.map((g) =>
-            g.group === dialogOpen ? { ...g, units: g.units + inputValue } : g,
-          ),
-        )
-      } else {
-        setGroupUnits([...state.groupUnits, { group: dialogOpen, units: inputValue }])
-      }
-      closeDialog()
+  const setUnits = (type: UnitType, val: number) => {
+    const sanitized = Math.max(0, val)
+    const group = state.groupUnits
+    const existing = group.find((g) => g.group === type)
+    if (sanitized === 0) {
+      setGroupUnits(group.filter((g) => g.group !== type))
+    } else if (existing) {
+      setGroupUnits(group.map((g) => (g.group === type ? { ...g, units: sanitized } : g)))
+    } else {
+      setGroupUnits([...group, { group: type, units: sanitized }])
     }
-  }
-
-  const removeAllocation = (index: number) => {
-    setGroupUnits(state.groupUnits.filter((_, i) => i !== index))
-  }
-
-  const getCurrentUnits = (type: UnitType): number => {
-    return state.groupUnits.find((g) => g.group === type)?.units ?? 0
   }
 
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">Gruppenheter</h4>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1">
         {unitTypes.map((type) => {
-          const current = getCurrentUnits(type)
+          const current = state.groupUnits.find((g) => g.group === type)?.units ?? 0
+          const inputId = `group-units-${type.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}`
           return (
-            <button
-              key={type}
-              type="button"
-              onClick={() => openDialog(type)}
-              className="btn btn--secondary text-sm flex items-center gap-2"
-            >
-              <span className="text-green-600 font-bold">+</span>
-              <span>{type}</span>
-              {current > 0 && <span className="font-bold text-blue-600">({current})</span>}
-            </button>
+            <div key={type} className="flex items-center gap-2">
+              <label className="text-sm flex-1" htmlFor={inputId}>
+                {type}:
+              </label>
+              <NumberInput
+                id={inputId}
+                name={inputId}
+                positive
+                className="w-16"
+                value={current || undefined}
+                onChange={(e) => setUnits(type, e)}
+              />
+            </div>
           )
         })}
       </div>
-
-      {/* Show current allocations */}
-      {state.groupUnits.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {state.groupUnits.map((alloc, i) => (
-            <span
-              key={i}
-              className="text-sm px-2 py-1 bg-blue-50 rounded border border-blue-200 flex items-center gap-2"
-            >
-              {alloc.group}: {alloc.units}
-              <MinusButton onClick={() => removeAllocation(i)} />
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Dialog */}
-      {dialogOpen && (
-        <dialog
-          open
-          className="fixed inset-0 z-50 w-80 p-4 border rounded shadow-lg bg-white"
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <div className="space-y-4">
-            <h5 className="font-medium">{dialogOpen}</h5>
-            <div className="space-y-2">
-              <label className="text-sm" htmlFor="group-unit-dialog-input">
-                Antal enheter att lägga till:
-              </label>
-              <input
-                id="group-unit-dialog-input"
-                name="group-unit-dialog-input"
-                type="number"
-                className="input-base w-full text-center"
-                min={1}
-                value={inputValue || ""}
-                onChange={(e) => setInputValue(parseInt(e.target.value) || 0)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addUnits()
-                  if (e.key === "Escape") closeDialog()
-                }}
-                autoFocus
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button type="button" onClick={closeDialog} className="btn btn--ghost">
-                Avbryt
-              </button>
-              <button
-                type="button"
-                onClick={addUnits}
-                className="btn btn--primary"
-                disabled={inputValue <= 0}
-              >
-                Lägg till
-              </button>
-            </div>
-          </div>
-        </dialog>
-      )}
-
-      {/* Backdrop */}
-      {dialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={closeDialog} />
-      )}
     </div>
   )
 }
 
-function FreeUnitsButton() {
+function FreeUnitsInput() {
   const state = eon5State.value
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [inputValue, setInputValue] = useState(0)
-
-  const openDialog = () => {
-    setDialogOpen(true)
-    setInputValue(0)
-  }
-
-  const closeDialog = () => {
-    setDialogOpen(false)
-    setInputValue(0)
-  }
-
-  const addUnits = () => {
-    if (inputValue > 0) {
-      setFreeUnits(state.freeUnits + inputValue)
-      closeDialog()
-    }
-  }
-
-  const decreaseUnits = () => {
-    if (state.freeUnits > 0) {
-      setFreeUnits(state.freeUnits - 1)
-    }
-  }
-
-  const clearUnits = () => {
-    setFreeUnits(0)
-  }
 
   return (
-    <div className="space-y-2">
-      <h4 className="text-sm font-medium">Valfria enheter</h4>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={openDialog}
-          className="btn btn--secondary text-sm flex items-center gap-2"
-        >
-          <span className="text-green-600 font-bold">+</span>
-          <span>Valfria enheter</span>
-          {state.freeUnits > 0 && (
-            <span className="font-bold text-blue-600">({state.freeUnits})</span>
-          )}
-        </button>
-        {state.freeUnits > 0 && (
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={decreaseUnits}
-              className="btn btn--ghost w-6 h-6 p-0 text-xs"
-            >
-              -
-            </button>
-            <button
-              type="button"
-              onClick={clearUnits}
-              className="btn btn--ghost px-2 py-0.5 text-xs"
-              title="Rensa alla"
-            >
-              ✕
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Dialog */}
-      {dialogOpen && (
-        <dialog
-          open
-          className="fixed inset-0 z-50 w-80 p-4 border rounded shadow-lg bg-white"
-          style={{
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <div className="space-y-4">
-            <h5 className="font-medium">Valfria enheter</h5>
-            <div className="space-y-2">
-              <label className="text-sm" htmlFor="free-unit-dialog-input">
-                Antal enheter att lägga till:
-              </label>
-              <input
-                id="free-unit-dialog-input"
-                name="free-unit-dialog-input"
-                type="number"
-                className="input-base w-full text-center"
-                min={1}
-                value={inputValue || ""}
-                onChange={(e) => setInputValue(parseInt(e.target.value) || 0)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addUnits()
-                  if (e.key === "Escape") closeDialog()
-                }}
-                autoFocus
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button type="button" onClick={closeDialog} className="btn btn--ghost">
-                Avbryt
-              </button>
-              <button
-                type="button"
-                onClick={addUnits}
-                className="btn btn--primary"
-                disabled={inputValue <= 0}
-              >
-                Lägg till
-              </button>
-            </div>
-          </div>
-        </dialog>
-      )}
-
-      {/* Backdrop */}
-      {dialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={closeDialog} />
-      )}
+    <div className="flex items-center gap-2">
+      <label className="text-sm font-medium" htmlFor="free-units">
+        Valfria enheter:
+      </label>
+      <NumberInput
+        id="free-units"
+        name="free-units"
+        positive
+        className="w-16"
+        value={state.freeUnits || undefined}
+        onChange={setFreeUnits}
+      />
     </div>
   )
 }
@@ -579,9 +407,9 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
             <span className="w-6 text-center">{skill.spentUnits}</span>
             <button
               type="button"
-              className={`btn btn--ghost w-6 h-6 p-0 text-xs ${
-                blockedByBudget ? "opacity-45" : ""
-              }`}
+              className={classNames("btn btn--ghost w-6 h-6 p-0 text-xs", {
+                "opacity-45": blockedByBudget,
+              })}
               onClick={handleIncrease}
               disabled={totalValue >= maxForStatus}
               aria-disabled={blockedByBudget}
@@ -595,7 +423,7 @@ function SkillRow({ skill }: { skill: Eon5Skill }) {
           </div>
         )}
       </td>
-      <td className={`text-center font-bold ${isOverMax ? "text-red-600" : ""}`}>
+      <td className={classNames(`text-center font-bold`, { "text-red-600": isOverMax })}>
         {totalValue}
         {overflow > 0 && <span className="text-xs text-red-500 ml-1">(+{overflow} overflow)</span>}
       </td>
@@ -820,34 +648,36 @@ function DynamicSkillRow({ skill }: { skill: Eon5Skill }) {
 
 function DesensitizationSection() {
   const state = eon5State.value
-
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium fg-eon-red">Avtrubbning</h4>
       <div className="flex gap-6">
-        {DESENSITIZATION_CATEGORIES.map((cat) => (
-          <div key={cat} className="flex items-center gap-2">
-            <label className="text-sm">{cat}:</label>
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-                onClick={() => setDesensitization(cat, state.desensitization[cat] - 1)}
-                disabled={state.desensitization[cat] <= 0}
-              >
-                -
-              </button>
-              <span className="w-6 text-center font-bold">{state.desensitization[cat]}</span>
-              <button
-                type="button"
-                className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
-                onClick={() => setDesensitization(cat, state.desensitization[cat] + 1)}
-              >
-                +
-              </button>
+        {DESENSITIZATION_CATEGORIES.map((cat) => {
+          const val = state.desensitization[cat]
+          return (
+            <div key={cat} className="flex items-center gap-2">
+              <label className="text-sm">{cat}:</label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+                  onClick={() => setDesensitization(cat, val - 1)}
+                  disabled={val <= 0}
+                >
+                  -
+                </button>
+                <span className="w-6 text-center font-bold">{val}</span>
+                <button
+                  type="button"
+                  className="w-6 h-6 border rounded text-xs hover:bg-gray-100"
+                  onClick={() => setDesensitization(cat, val + 1)}
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

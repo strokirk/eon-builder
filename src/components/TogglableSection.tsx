@@ -24,7 +24,7 @@ export function TogglableSection(props: {
         <button
           aria-controls={sectionContentId}
           aria-expanded={!isCollapsed}
-          className="section-toggle btn btn--ghost"
+          className="section-toggle-btn"
           onClick={() => setCollapsed(!isCollapsed)}
           type="button"
         >

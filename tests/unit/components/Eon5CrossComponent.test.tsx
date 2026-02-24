@@ -98,7 +98,12 @@ describe("Eon5 cross-component flows", () => {
     expect((budgetBlock as HTMLElement).textContent || "").toContain("12 / 13 spenderade")
     expect((budgetBlock as HTMLElement).textContent || "").toContain("(1 kvar att spendera)")
 
-    const filosofiRow = within(skillsSection).getByText("Filosofi").closest("tr")
+    // Filosofi appears in both the specific-units list and the skills table; pick the table row
+    const filosofiRows = within(skillsSection)
+      .getAllByText("Filosofi")
+      .map((el) => el.closest("tr"))
+      .filter(Boolean)
+    const filosofiRow = filosofiRows[filosofiRows.length - 1]
     const ceremoniRow = within(skillsSection).getByText("Ceremoni").closest("tr")
     const dansaRow = within(skillsSection).getByText("Dansa").closest("tr")
     const expertisRow = within(skillsSection).getByText("Expertis: Alkemi").closest("tr")

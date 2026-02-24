@@ -1,0 +1,31 @@
+.status-banner {
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-size: 0.92rem;
+  padding: var(--space-2) var(--space-3);
+}
+
+.status-banner--warn {
+  background: var(--color-warn-bg);
+  border-color: var(--color-warn-border);
+  color: var(--color-warn-text);
+}
+
+.status-banner--error {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+  color: var(--color-error-text);
+}
+
+.status-banner--info {
+  background: var(--color-info-bg);
+  border-color: var(--color-info-border);
+  color: var(--color-info-text);
+}
+
+.status-banner--ok {
+  background: var(--color-ok-bg);
+  border-color: var(--color-ok-border);
+  color: var(--color-ok-text);
+}
+

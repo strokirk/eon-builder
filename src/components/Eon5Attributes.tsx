@@ -1,3 +1,5 @@
+import classNames from "classnames"
+
 import {
   assignChunk,
   eon5State,
@@ -15,7 +17,6 @@ import {
   DISTRIBUTION_MODELS,
   MAX_CHUNK_VALUE,
   MIN_FINAL_ATTRIBUTE_VALUE,
-  REFERENCE_VALUE,
   type AttributeName,
   type DistributionModel,
 } from "../eon5-data"
@@ -23,12 +24,13 @@ import {
   attributeToDice,
   getFinalAttributeValue,
   getGrundrustningFromTable,
-  getGrundskada,
+  getGrundskadaWithMod,
   getPreSpend,
   getTotalAttributePoints,
   getChunks,
   validateAttributes,
 } from "../eon5-utils"
+import { NumberInput } from "./ui/NumberInput"
 
 function idFor(seed: string) {
   return seed
@@ -45,20 +47,17 @@ export function Eon5Attributes() {
 
   return (
     <div className="space-y-4">
-      <h3>Steg 1: Attribut</h3>
-
       <div className="field">
         <label className="field-label" htmlFor={extraPointsId}>
           Extra attributpoäng (händelsetabell)
         </label>
         <div className="flex items-center gap-2 flex-wrap">
-          <input
+          <NumberInput
             id={extraPointsId}
             name={extraPointsId}
-            type="number"
-            className="input-base input-compact w-16 text-center"
+            className="w-16"
             value={state.extraAttributePoints}
-            onChange={(e) => setExtraAttributePoints(parseInt(e.target.value) || 0)}
+            onChange={setExtraAttributePoints}
           />
           <span className="field-hint">Total: {totalPoints} poäng</span>
         </div>
@@ -79,21 +78,19 @@ function ModelSelector() {
       <legend className="field-label">Fördelningsmodell</legend>
       <div className="flex gap-4 flex-wrap">
         {(Object.keys(DISTRIBUTION_MODELS) as DistributionModel[]).map((model) => {
-          const modelId = `distribution-model-${idFor(model)}`
+          const values = DISTRIBUTION_MODELS[model]
           return (
-            <div key={model} className="flex items-center gap-2">
+            <label className="flex items-center gap-2">
               <input
-                id={modelId}
                 type="radio"
                 name="distributionModel"
                 checked={state.distributionModel === model}
                 onChange={() => setDistributionModel(model)}
                 className="h-4 w-4"
               />
-              <label htmlFor={modelId}>
-                {model} [{DISTRIBUTION_MODELS[model].join(", ")}]
-              </label>
-            </div>
+              {model}
+              {values.length > 0 && ` [${values.join(", ")}]`}
+            </label>
           )
         })}
       </div>
@@ -106,25 +103,6 @@ function AttributeTable() {
   const attributeViolations = validateAttributes(state)
 
   const isFreePoints = state.distributionModel === "Fria poäng"
-  const chunks = state.distributionModel !== null ? getChunks(state.distributionModel) : []
-
-  const chunkAssignments = new Map<number, AttributeName>()
-  const usedIndices = new Set<number>()
-
-  for (const attrName of ATTRIBUTES) {
-    const chunk = state.attributes[attrName].assignedChunk
-    if (chunk !== null) {
-      for (let i = 0; i < chunks.length; i++) {
-        if (chunks[i] === chunk && !usedIndices.has(i)) {
-          chunkAssignments.set(i, attrName)
-          usedIndices.add(i)
-          break
-        }
-      }
-    }
-  }
-
-  const availableChunkIndices = chunks.map((_, i) => i).filter((i) => !usedIndices.has(i))
 
   const totalPoints = getTotalAttributePoints(state.extraAttributePoints)
   const usedPoints = isFreePoints
@@ -142,7 +120,7 @@ function AttributeTable() {
         </div>
       )}
       {state.distributionModel !== null && attributeViolations.length > 0 && (
-        <div className="status-banner status-banner--warn space-y-1">
+        <div className="status-banner status-banner--warn space-y-1" role="status">
           <h4 className="text-sm font-medium">Regelvarningar:</h4>
           {attributeViolations.map((violation, i) => (
             <p key={`${violation.field}:${violation.message}:${i}`} className="text-sm">
@@ -158,7 +136,7 @@ function AttributeTable() {
               <th className="text-left">Attribut</th>
               <th className="text-center">Grundvärde</th>
               <th className="text-center">Modifierare</th>
-              <th className="text-center">Pre-spend</th>
+              <th className="text-center">Bas+Mod</th>
               <th className="text-center">{isFreePoints ? "Poäng" : "Klumpsumma"}</th>
               <th className="text-center">Slutvärde</th>
               <th className="text-center">Tärningar</th>
@@ -173,116 +151,63 @@ function AttributeTable() {
               const exceedsFreePointCap =
                 isFreePoints && (attr.assignedChunk ?? 0) > MAX_CHUNK_VALUE
               const isInvalid = finalVal < MIN_FINAL_ATTRIBUTE_VALUE || exceedsFreePointCap
-              const isReference = finalVal === REFERENCE_VALUE
               const attrId = idFor(attrName)
-
-              let assignedChunkIndex: number | null = null
-              for (const [idx, name] of chunkAssignments) {
-                if (name === attrName) {
-                  assignedChunkIndex = idx
-                  break
-                }
-              }
 
               const baseId = `attr-base-${attrId}`
               const modId = `attr-mod-${attrId}`
               const chunkId = `attr-chunk-${attrId}`
 
+              const isFinal = isFreePoints || attr.assignedChunk !== null
+
               return (
-                <tr key={attrName} className={isInvalid ? "bg-red-50" : ""}>
+                <tr key={attrName} className={classNames({ "bg-red-50": isInvalid })}>
                   <td className="font-medium">{attrName}</td>
                   <td className="text-center">
-                    <label className="sr-only" htmlFor={baseId}>{`${attrName} grundvärde`}</label>
-                    <input
+                    <NumberInput
                       id={baseId}
                       name={baseId}
-                      type="number"
-                      className="input-base input-compact w-14 text-center"
-                      value={attr.base || ""}
-                      onChange={(e) => setAttributeBase(attrName, parseInt(e.target.value) || 0)}
+                      className="w-14"
+                      value={attr.base || undefined}
+                      min={0}
+                      srOnlyLabel={`${attrName} grundvärde`}
+                      onChange={(e) => setAttributeBase(attrName, e)}
                     />
                   </td>
                   <td className="text-center">
-                    <label className="sr-only" htmlFor={modId}>{`${attrName} modifierare`}</label>
-                    <input
+                    <NumberInput
                       id={modId}
                       name={modId}
-                      type="number"
-                      className="input-base input-compact w-14 text-center"
-                      value={attr.modifiers || ""}
-                      onChange={(e) =>
-                        setAttributeModifiers(attrName, parseInt(e.target.value) || 0)
-                      }
+                      className="w-14"
+                      value={attr.modifiers || undefined}
+                      srOnlyLabel={`${attrName} modifierare`}
+                      onChange={(e) => setAttributeModifiers(attrName, e)}
                     />
                   </td>
                   <td className="text-center">{preSpend}</td>
                   <td className="text-center">
                     {state.distributionModel !== null ? (
                       isFreePoints ? (
-                        <>
-                          <label className="sr-only" htmlFor={chunkId}>{`${attrName} poäng`}</label>
-                          <input
-                            id={chunkId}
-                            name={chunkId}
-                            type="number"
-                            className="input-base input-compact w-16 text-center"
-                            min="0"
-                            value={attr.assignedChunk ?? ""}
-                            onChange={(e) => {
-                              const val = parseInt(e.target.value) || 0
-                              setAttributeChunk(attrName, val)
-                            }}
-                          />
-                        </>
+                        <NumberInput
+                          id={chunkId}
+                          name={chunkId}
+                          className="w-16"
+                          min={0}
+                          srOnlyLabel={`${attrName} poäng`}
+                          value={attr.assignedChunk ?? undefined}
+                          onChange={(e) => setAttributeChunk(attrName, e)}
+                        />
                       ) : (
-                        <>
-                          <label
-                            className="sr-only"
-                            htmlFor={chunkId}
-                          >{`${attrName} klumpsumma`}</label>
-                          <select
-                            id={chunkId}
-                            name={chunkId}
-                            className="input-base input-compact w-20 text-center"
-                            value={assignedChunkIndex !== null ? String(assignedChunkIndex) : ""}
-                            onChange={(e) => {
-                              const val = e.target.value
-                              if (val === "") {
-                                if (assignedChunkIndex !== null) {
-                                  unassignChunk(assignedChunkIndex)
-                                }
-                              } else {
-                                assignChunk(attrName, parseInt(val))
-                              }
-                            }}
-                          >
-                            <option value="">—</option>
-                            {assignedChunkIndex !== null && (
-                              <option value={String(assignedChunkIndex)}>
-                                {chunks[assignedChunkIndex]}
-                              </option>
-                            )}
-                            {availableChunkIndices.map((idx) => (
-                              <option key={idx} value={String(idx)}>
-                                {chunks[idx]}
-                              </option>
-                            ))}
-                          </select>
-                        </>
+                        <ChunkSelect attrName={attrName} chunkId={chunkId} />
                       )
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
                   </td>
-                  <td
-                    className={`text-center font-bold ${
-                      isInvalid ? "text-red-600" : isReference ? "text-blue-600" : ""
-                    }`}
-                  >
-                    {isFreePoints || attr.assignedChunk !== null ? finalVal : preSpend || "—"}
+                  <td className="text-center font-bold">
+                    {isFinal ? finalVal : preSpend || "—"}
                     {isInvalid && (
                       <span
-                        className="text-xs ml-1"
+                        className="text-xs ml-1 text-red-600"
                         title={exceedsFreePointCap ? "Över max 10 fria poäng" : "Under minimum 4"}
                       >
                         !
@@ -292,10 +217,10 @@ function AttributeTable() {
                   <td className="text-center">
                     {isVisdom ? (
                       <span className="text-gray-500 text-sm italic">se Visdom-panel</span>
-                    ) : isFreePoints || attr.assignedChunk !== null ? (
-                      <span className="fn-dice">{attributeToDice(finalVal)}</span>
+                    ) : isFinal ? (
+                      <span>{attributeToDice(finalVal)}</span>
                     ) : preSpend > 0 ? (
-                      <span className="fn-dice text-gray-400">{attributeToDice(preSpend)}</span>
+                      <span className="text-gray-400">{attributeToDice(preSpend)}</span>
                     ) : (
                       "—"
                     )}
@@ -310,60 +235,118 @@ function AttributeTable() {
   )
 }
 
+function ChunkSelect(props: { attrName: AttributeName; chunkId: string }) {
+  const { attrName, chunkId } = props
+  const state = eon5State.value
+  const chunks = state.distributionModel !== null ? getChunks(state.distributionModel) : []
+
+  const chunkAssignments = new Map<number, AttributeName>()
+  const usedIndices = new Set<number>()
+
+  for (const attrName of ATTRIBUTES) {
+    const chunk = state.attributes[attrName].assignedChunk
+    if (chunk !== null) {
+      for (let i = 0; i < chunks.length; i++) {
+        if (chunks[i] === chunk && !usedIndices.has(i)) {
+          chunkAssignments.set(i, attrName)
+          usedIndices.add(i)
+          break
+        }
+      }
+    }
+  }
+  const availableChunkIndices = chunks.map((_, i) => i).filter((i) => !usedIndices.has(i))
+  let assignedChunkIndex: number | null = null
+  for (const [idx, name] of chunkAssignments) {
+    if (name === attrName) {
+      assignedChunkIndex = idx
+      break
+    }
+  }
+  return (
+    <>
+      <label className="sr-only" htmlFor={chunkId}>{`${attrName} klumpsumma`}</label>
+      <select
+        id={chunkId}
+        name={chunkId}
+        className="input-base input-compact w-20 text-center"
+        value={assignedChunkIndex !== null ? String(assignedChunkIndex) : ""}
+        onChange={(e) => {
+          const val = e.target.value
+          if (val === "") {
+            unassignChunk(assignedChunkIndex)
+          } else {
+            assignChunk(attrName, parseInt(val))
+          }
+        }}
+      >
+        <option value="">—</option>
+        {assignedChunkIndex !== null && (
+          <option value={String(assignedChunkIndex)}>{chunks[assignedChunkIndex]}</option>
+        )}
+        {availableChunkIndices.map((idx) => (
+          <option key={idx} value={String(idx)}>
+            {chunks[idx]}
+          </option>
+        ))}
+      </select>
+    </>
+  )
+}
+
 function DerivedValues() {
   const state = eon5State.value
   const kbAttr = state.attributes["Kroppsbyggnad"]
   const kbFinal = getFinalAttributeValue(kbAttr)
-  const hasKb = kbAttr.assignedChunk !== null
-
-  const grundrustning = hasKb ? getGrundrustningFromTable(kbFinal) + state.grundrustningMod : null
-  const grundskada = hasKb ? getGrundskada(kbFinal) : null
+  const grundrustning = getGrundrustningFromTable(kbFinal) + state.grundrustningMod
+  const grundskada = getGrundskadaWithMod(kbFinal, state.grundskadaMod)
 
   return (
     <div className="panel space-y-2 bg-gray-50">
-      <h4 className="text-sm font-medium">
-        Härledda värden (Kroppsbyggnad {hasKb ? kbFinal : "—"})
-      </h4>
+      <h4 className="text-sm font-medium">Härledda värden (Kroppsbyggnad {kbFinal})</h4>
       <div className="flex gap-8 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="text-sm">Grundrustning:</span>
-          <span className="font-bold">{grundrustning ?? "—"}</span>
-          <label
-            className="text-xs text-gray-500 flex items-center gap-1"
-            htmlFor="grundrustning-mod"
-          >
-            mod:
-          </label>
-          <input
-            id="grundrustning-mod"
-            name="grundrustning-mod"
-            type="number"
-            className="input-base input-compact w-12 text-center text-xs"
-            value={state.grundrustningMod || ""}
-            onChange={(e) => setGrundrustningMod(parseInt(e.target.value) || 0)}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm">Grundskada:</span>
-          <span className="font-bold fn-dice">{grundskada ?? "—"}</span>
-          {state.grundskadaMod !== 0 && (
-            <span className="text-sm">
-              {state.grundskadaMod > 0 ? "+" : ""}
-              {state.grundskadaMod}
-            </span>
-          )}
-          <label className="text-xs text-gray-500 flex items-center gap-1" htmlFor="grundskada-mod">
-            mod:
-          </label>
-          <input
-            id="grundskada-mod"
-            name="grundskada-mod"
-            type="number"
-            className="input-base input-compact w-12 text-center text-xs"
-            value={state.grundskadaMod || ""}
-            onChange={(e) => setGrundskadaMod(parseInt(e.target.value) || 0)}
-          />
-        </div>
+        <DerivedValueInput
+          label="Grundrustning"
+          id="grundrustning-mod"
+          value={grundrustning}
+          modValue={state.grundrustningMod}
+          onChange={setGrundrustningMod}
+        />
+        <DerivedValueInput
+          label="Grundskada"
+          id="grundskada-mod"
+          value={grundskada}
+          modValue={state.grundskadaMod || undefined}
+          onChange={setGrundskadaMod}
+        />
+      </div>
+    </div>
+  )
+}
+function DerivedValueInput(props: {
+  label: string
+  id: string
+  value: string | number
+  modValue?: number
+  onChange: (newValue: number) => void
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-sm">{props.label}:</span>
+        <span className="font-bold">{props.value}</span>
+      </div>
+      <div className="flex items-center gap-1">
+        <label className="text-xs text-gray-500 flex items-center gap-1" htmlFor={props.id}>
+          mod:
+        </label>
+        <NumberInput
+          id={props.id}
+          name={props.id}
+          className="w-12 text-xs"
+          value={props?.modValue || undefined}
+          onChange={props.onChange}
+        />
       </div>
     </div>
   )

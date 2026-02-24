@@ -10,8 +10,7 @@ import {
   attributeToDice,
   getFinalAttributeValue,
   getGrundrustningFromTable,
-  getGrundskada,
-  getWisdomEntry,
+  getGrundskadaWithMod,
   skillValueToDice,
   validateAttributes,
   validateSkills,
@@ -28,19 +27,12 @@ export function Eon5Summary() {
 
   const kbAttr = state.attributes["Kroppsbyggnad"]
   const kbFinal = getFinalAttributeValue(kbAttr)
-  const hasKb = kbAttr.assignedChunk !== null
-  const wisdomAttr = state.attributes["Visdom"]
-  const wisdomFinal = getFinalAttributeValue(wisdomAttr)
-  const hasWisdom = wisdomAttr.assignedChunk !== null
-  const wisdomEntry = hasWisdom ? getWisdomEntry(wisdomFinal) : null
 
   const allSkills = [...state.skills, ...state.dynamicSkills]
   const skillGroups = groupSkills(allSkills)
 
   return (
     <div className="space-y-4">
-      <h3>Steg 5: Sammanfattning</h3>
-
       {/* Validation */}
       {errors.length > 0 && (
         <div className="status-banner status-banner--error space-y-1">
@@ -70,23 +62,20 @@ export function Eon5Summary() {
           <table className="table-eon table-eon--dense text-sm">
             <thead>
               <tr>
+                <th className="text-center w-16">Tärningar</th>
                 <th className="text-left">Attribut</th>
-                <th className="text-center">Värde</th>
-                <th className="text-center">Tärningar</th>
               </tr>
             </thead>
             <tbody>
               {ATTRIBUTES.map((attrName) => {
-                const attr = state.attributes[attrName]
-                const finalVal = getFinalAttributeValue(attr)
-                const isVisdom = attrName === "Visdom"
                 return (
                   <tr key={attrName}>
-                    <td className="font-medium">{attrName}</td>
-                    <td className="text-center">{finalVal}</td>
-                    <td className="text-center fn-dice">
-                      {isVisdom ? "—" : attributeToDice(finalVal)}
+                    <td className="text-center">
+                      {attrName === "Visdom"
+                        ? "—"
+                        : attributeToDice(getFinalAttributeValue(state.attributes[attrName]))}
                     </td>
+                    <td className="font-medium">{attrName}</td>
                   </tr>
                 )
               })}
@@ -100,41 +89,13 @@ export function Eon5Summary() {
         <h4 className="font-medium fg-eon-red">Härledda värden</h4>
         <p>
           <strong>Grundrustning:</strong>{" "}
-          {hasKb ? getGrundrustningFromTable(kbFinal) + state.grundrustningMod : "—"}
+          {getGrundrustningFromTable(kbFinal) + state.grundrustningMod}
         </p>
         <p>
-          <strong>Grundskada:</strong> {hasKb ? getGrundskada(kbFinal) : "—"}
-          {state.grundskadaMod !== 0 && (
-            <span>
-              {" "}
-              ({state.grundskadaMod > 0 ? "+" : ""}
-              {state.grundskadaMod} mod)
-            </span>
-          )}
+          <strong>Grundskada:</strong>{" "}
+          <span>{getGrundskadaWithMod(kbFinal, state.grundskadaMod)}</span>
         </p>
       </div>
-
-      {/* Visdom info */}
-      {wisdomEntry && (
-        <div className="space-y-1 text-sm">
-          <h4 className="font-medium fg-eon-red">Visdom ({wisdomFinal})</h4>
-          <p>
-            Ny kunskap-kostnad: <strong>{wisdomEntry.newKnowledgeCost}</strong> erfarenhetspoäng
-          </p>
-          {state.incompetentSkills.length > 0 && (
-            <p>
-              Inkompetenta:{" "}
-              <span className="text-red-600">{state.incompetentSkills.join(", ")}</span>
-            </p>
-          )}
-          {state.baseValueSkills.length > 0 && (
-            <p>
-              Grundvärde 1:{" "}
-              <span className="text-green-700">{state.baseValueSkills.join(", ")}</span>
-            </p>
-          )}
-        </div>
-      )}
 
       {/* Skills by group */}
       {Object.entries(skillGroups).map(([groupName, skills]) => {
@@ -150,9 +111,8 @@ export function Eon5Summary() {
               <table className="table-eon table-eon--dense text-sm">
                 <thead>
                   <tr>
+                    <th className="text-center w-16">Tärningar</th>
                     <th className="text-left">Färdighet</th>
-                    <th className="text-center">Värde</th>
-                    <th className="text-center">Tärningar</th>
                     <th className="text-center">Status</th>
                   </tr>
                 </thead>
@@ -161,6 +121,7 @@ export function Eon5Summary() {
                     const totalValue = skill.baseValue + skill.spentUnits
                     return (
                       <tr key={skill.name}>
+                        <td className="text-center">{skillValueToDice(totalValue)}</td>
                         <td>
                           {skill.name}
                           {skill.dynamicType && (
@@ -169,8 +130,6 @@ export function Eon5Summary() {
                             </span>
                           )}
                         </td>
-                        <td className="text-center">{totalValue}</td>
-                        <td className="text-center fn-dice">{skillValueToDice(totalValue)}</td>
                         <td className="text-center">
                           {skill.status && (
                             <span

@@ -4,8 +4,7 @@ import { Eon5CharTool } from "../../../src/components/Eon5CharTool"
 import { resetEon5State } from "../../../src/eon5-store"
 
 const ATTRIBUTES_TAB = /1\. Attribut/i
-const WISDOM_TAB = /2\. Visdom/i
-const SKILLS_TAB = /3\. Fardigheter|3\. Färdigheter/i
+const SKILLS_TAB = /2\. Fardigheter|2\. Färdigheter/i
 
 export const resetEon5StorageAndState = () => {
   if (typeof window.localStorage?.removeItem === "function") {
@@ -18,19 +17,17 @@ export const renderEon5Sections = () => {
   render(<Eon5CharTool />)
 
   const attributesButton = screen.getByRole("button", { name: ATTRIBUTES_TAB })
-  const wisdomButton = screen.getByRole("button", { name: WISDOM_TAB })
   const skillsButton = screen.getByRole("button", { name: SKILLS_TAB })
 
-  fireEvent.click(wisdomButton)
   fireEvent.click(skillsButton)
 
   const attributesSection = attributesButton.closest("h2")?.nextElementSibling as HTMLElement
-  const wisdomSection = wisdomButton.closest("h2")?.nextElementSibling as HTMLElement
+  // Wisdom panel is now embedded inside the skills section
   const skillsSection = skillsButton.closest("h2")?.nextElementSibling as HTMLElement
 
   return {
     attributesSection,
-    wisdomSection,
+    wisdomSection: skillsSection,
     skillsSection,
   }
 }

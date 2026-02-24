@@ -77,7 +77,8 @@ export function assignChunk(attribute: AttributeName, chunkIndex: number): void 
   })
 }
 
-export function unassignChunk(chunkIndex: number): void {
+export function unassignChunk(chunkIndex: number | null): void {
+  if (chunkIndex === null) return
   updateEon5((draft, state) => {
     if (!state.distributionModel) return
     const usedIndices = getUsedChunkIndices(state)
@@ -200,7 +201,7 @@ export function setGroupUnits(allocations: GroupUnitAllocation[]): void {
 
 export function setFreeUnits(units: number): void {
   updateEon5((draft) => {
-    draft.freeUnits = units
+    draft.freeUnits = Math.max(0, units)
   })
 }
 
@@ -595,20 +596,18 @@ function applyWisdomDerivedRules(draft: Eon5CharState): void {
   const wisdomEntry = getWisdomEntry(wisdomFinal)
   const knowledgeSet = new Set(KNOWLEDGE_SKILLS)
 
+  const foo = (skill: Eon5Skill) =>
+    knowledgeSet.has(skill.name as (typeof KNOWLEDGE_SKILLS)[number])
+
   if (wisdomEntry.baseValueCount === TOTAL_KNOWLEDGE_SKILLS) {
     draft.baseValueSkills = [...KNOWLEDGE_SKILLS]
-    for (const skill of draft.skills) {
-      if (knowledgeSet.has(skill.name as (typeof KNOWLEDGE_SKILLS)[number])) {
-        skill.baseValue = 1
-      }
+    for (const skill of draft.skills.filter(foo)) {
+      skill.baseValue = 1
     }
   } else if (draft.baseValueSkills.length === TOTAL_KNOWLEDGE_SKILLS) {
     draft.baseValueSkills = []
-    for (const skill of draft.skills) {
-      if (
-        knowledgeSet.has(skill.name as (typeof KNOWLEDGE_SKILLS)[number]) &&
-        skill.baseValue === 1
-      ) {
+    for (const skill of draft.skills.filter(foo)) {
+      if (skill.baseValue === 1) {
         skill.baseValue = 0
       }
     }
@@ -616,18 +615,13 @@ function applyWisdomDerivedRules(draft: Eon5CharState): void {
 
   if (wisdomEntry.incompetentCount === TOTAL_KNOWLEDGE_SKILLS) {
     draft.incompetentSkills = [...KNOWLEDGE_SKILLS]
-    for (const skill of draft.skills) {
-      if (knowledgeSet.has(skill.name as (typeof KNOWLEDGE_SKILLS)[number])) {
-        skill.status = "I"
-      }
+    for (const skill of draft.skills.filter(foo)) {
+      skill.status = "I"
     }
   } else if (draft.incompetentSkills.length === TOTAL_KNOWLEDGE_SKILLS) {
     draft.incompetentSkills = []
-    for (const skill of draft.skills) {
-      if (
-        knowledgeSet.has(skill.name as (typeof KNOWLEDGE_SKILLS)[number]) &&
-        skill.status === "I"
-      ) {
+    for (const skill of draft.skills.filter(foo)) {
+      if (skill.status === "I") {
         skill.status = null
       }
     }
